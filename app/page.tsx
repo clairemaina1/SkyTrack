@@ -234,7 +234,7 @@ export default function SkyTrackApex() {
   const [flightMessage, setFlightMessage] = useState({ type: '', text: '' });
   const [assistantInput, setAssistantInput] = useState('');
   const [assistantMessages, setAssistantMessages] = useState<Array<{ role: string; content: string }>>([
-    { role: 'assistant', content: 'SkyTrack Assistant: Ask me about flight safety, the weather, or student readiness.' }
+    { role: 'assistant', content: translations.en.assistantIntro }
   ]);
   const [isAssistantTyping, setIsAssistantTyping] = useState(false);
   const [weatherMessage, setWeatherMessage] = useState({ type: '', text: '' });
@@ -267,6 +267,13 @@ export default function SkyTrackApex() {
 
     return () => listener.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (assistantMessages.length === 1 && assistantMessages[0].role === 'assistant') {
+      setAssistantMessages([{ role: 'assistant', content: translations[lang].assistantIntro }]);
+    }
+  }, [lang, assistantMessages]);
+
   const [weather, setWeather] = useState(getLiveWeather(new Date(0)));
   const [weatherSource, setWeatherSource] = useState('SIMULATED');
   const [selectedAirport, setSelectedAirport] = useState('HKNW');
@@ -346,7 +353,7 @@ export default function SkyTrackApex() {
       });
 
       const payload = await response.json();
-      const aiReply = payload.reply ?? generateAssistantReply(prompt, currentTime, weather, nextFlight, safeWindow, lang, t);
+      const aiReply = payload.reply ?? payload.answer ?? generateAssistantReply(prompt, currentTime, weather, nextFlight, safeWindow, lang, t);
 
       if (!response.ok) {
         setAssistantMessages((prev) => [
@@ -624,7 +631,7 @@ export default function SkyTrackApex() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#020408] text-slate-200">
+    <div className="relative min-h-screen bg-[#020408] text-slate-200 flex">
       <div className="fixed inset-0 z-0 bg-cover bg-center opacity-25 grayscale scale-110" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop')" }} />
       <div className="fixed inset-0 z-0 bg-gradient-to-tr from-black via-black/95 to-blue-950/20" />
 
@@ -646,13 +653,13 @@ export default function SkyTrackApex() {
 
         <nav className="flex-1 px-4 py-4 space-y-1">
           {[
-            { id: 'dashboard', label: 'Command Deck', icon: LayoutDashboard },
-            { id: 'hours', label: 'Tech Logbook', icon: Clock },
-            { id: 'ground', label: 'Ground School', icon: BookOpen },
-            { id: 'compliance', label: 'KCAA Audit', icon: ShieldCheck },
+            { id: 'dashboard', label: t.commandDeck, icon: LayoutDashboard },
+            { id: 'hours', label: t.techLogbook, icon: Clock },
+            { id: 'ground', label: t.groundSchool, icon: BookOpen },
+            { id: 'compliance', label: t.kcaaAudit, icon: ShieldCheck },
             ...(profile?.role === 'instructor' ? [
-              { id: 'students', label: 'Student Roster', icon: GraduationCap },
-              { id: 'instructor', label: 'Instructor Desk', icon: FileCheck },
+              { id: 'students', label: t.studentRoster, icon: GraduationCap },
+              { id: 'instructor', label: t.instructorDesk, icon: FileCheck },
             ] : []),
           ].map(item => (
             <button key={item.id} onClick={() => setView(item.id)} className={`flex w-full items-center gap-4 px-4 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${view === item.id ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-500 hover:bg-white/5 hover:text-white'}`}>
@@ -674,14 +681,14 @@ export default function SkyTrackApex() {
 
       {/* CONTENT */}
       <main className="flex-1 overflow-auto">
-        <header className="flex justify-between items-end px-12 pt-12 pb-8">
+        <header className="flex justify-between items-end px-12 pt-6 pb-8">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <Badge color="green">{selectedAirportLabel} Ops ({selectedAirport})</Badge>
               <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">April 11, 2026 • 20:01 EAT</div>
             </div>
             <h1 className="text-6xl font-black text-white tracking-tighter uppercase italic drop-shadow-2xl">
-              {view === 'dashboard' && (lang === 'en' ? "The Deck" : "Le Pont")}
+              {view === 'dashboard' && t.commandDeck}
               {view === 'hours' && (lang === 'en' ? "Certified Log" : "Registre Certifié")}
               {view === 'ground' && (lang === 'en' ? "Ground Matrix" : "Matrice de Sol")}
               {view === 'compliance' && (lang === 'en' ? "KCAA Audit Status" : "Statut d'Audit KCAA")}
@@ -942,7 +949,7 @@ export default function SkyTrackApex() {
                 <div className="space-y-3 max-h-[420px] overflow-y-auto pr-2">
                   {assistantMessages.map((msg, index) => (
                     <div key={index} className={`rounded-3xl p-4 ${msg.role === 'assistant' ? 'bg-blue-500/10 border border-blue-500/10' : 'bg-white/5 border border-white/10'} ${msg.role === 'assistant' ? 'ml-0' : 'ml-6'}`}>
-                      <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{msg.role === 'assistant' ? 'SkyTrack' : 'You'}</p>
+                      <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{msg.role === 'assistant' ? t.assistantName : t.youLabel}</p>
                       <p className="text-sm text-slate-200">{msg.content}</p>
                     </div>
                   ))}
