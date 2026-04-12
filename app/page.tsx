@@ -1,5 +1,6 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
+import { translations } from '../lib/translations';
 import supabase from '@/lib/supabase-browser';
 import { kcaaRequirements, kcaaModules } from '@/lib/kcaa-requirements';
 import {
@@ -27,7 +28,7 @@ const Badge = ({ children, color = "blue" }: any) => {
 
 const Progress = ({ val, max, color = "bg-blue-600" }: any) => (
   <div className="h-1.5 w-full bg-white/5 rounded-full mt-2 overflow-hidden">
-    <div className={`h-full ${color} shadow-[0_0_12px_rgba(59,130,246,0.4)] transition-all duration-1000`} style={{ width: `${(val/max)*100}%` }} />
+    <div className={`h-full ${color} shadow-[0_0_12px_rgba(59,130,246,0.4)] transition-all duration-1000`} style={{ width: `${(val / max) * 100}%` }} />
   </div>
 );
 
@@ -216,6 +217,8 @@ const generateAssistantReply = (input: string, now: Date, weather: any, nextFlig
 // DATA & LOGIC
 // =============================================================================
 export default function SkyTrackApex() {
+  const [lang, setLang] = useState<'en' | 'fr'>('en');
+  const t = translations[lang];
   const [session, setSession] = useState<any>(null);
   const [view, setView] = useState('dashboard');
   const [dbRows, setDbRows] = useState<any[]>([]);
@@ -624,519 +627,524 @@ export default function SkyTrackApex() {
       <div className="fixed inset-0 z-0 bg-cover bg-center opacity-25 grayscale scale-110" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop')" }} />
       <div className="fixed inset-0 z-0 bg-gradient-to-tr from-black via-black/95 to-blue-950/20" />
 
-      <div className="relative z-10 flex min-h-screen">
-        {/* SIDEBAR */}
-        <aside className="w-72 bg-black/60 border-r border-white/5 flex flex-col h-screen sticky top-0 backdrop-blur-xl">
-          <div className="p-8">
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-600 p-2.5 rounded-2xl shadow-lg shadow-blue-500/40 -rotate-2"><Plane size={24} className="text-white" /></div>
-              <span className="text-2xl font-black tracking-tighter text-white italic">SKYTRACK<span className="text-blue-500">.</span></span>
-            </div>
+      <div className="fixed top-6 right-8 z-[100]">
+        <Button
+          onClick={() => setLang(lang === 'en' ? 'fr' : 'en')}
+          className="bg-blue-600/20 hover:bg-blue-600/40 backdrop-blur-md border border-blue-500/50 text-white px-4 py-2 rounded-xl shadow-lg transition-all"
+        >
+          {lang === 'en' ? '🇫🇷 Français' : '🇬🇧 English'}
+        </Button>
+      </div>        {/* SIDEBAR */}
+      <aside className="w-72 bg-black/60 border-r border-white/5 flex flex-col h-screen sticky top-0 backdrop-blur-xl">
+        <div className="p-8">
+          <div className="flex items-center gap-3">
+            <div className="bg-blue-600 p-2.5 rounded-2xl shadow-lg shadow-blue-500/40 -rotate-2"><Plane size={24} className="text-white" /></div>
+            <span className="text-2xl font-black tracking-tighter text-white italic">SKYTRACK<span className="text-blue-500">.</span></span>
           </div>
-          
-          <nav className="flex-1 px-4 py-4 space-y-1">
-            {[
-              { id: 'dashboard', label: 'Command Deck', icon: LayoutDashboard },
-              { id: 'hours', label: 'Tech Logbook', icon: Clock },
-              { id: 'ground', label: 'Ground School', icon: BookOpen },
-              { id: 'compliance', label: 'KCAA Audit', icon: ShieldCheck },
-              ...(profile?.role === 'instructor' ? [
-                { id: 'students', label: 'Student Roster', icon: GraduationCap },
-                { id: 'instructor', label: 'Instructor Desk', icon: FileCheck },
-              ] : []),
-            ].map(item => (
-              <button key={item.id} onClick={() => setView(item.id)} className={`flex w-full items-center gap-4 px-4 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${view === item.id ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-500 hover:bg-white/5 hover:text-white'}`}>
-                <item.icon size={18} strokeWidth={3} /> {item.label}
-              </button>
-            ))}
-          </nav>
+        </div>
 
-          <div className="p-6 bg-blue-600/5 border-t border-white/5">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black shadow-xl">{studentName.slice(0, 2).toUpperCase()}</div>
-              <div>
-                <p className="text-sm font-black text-white">{studentName}</p>
-                <p className="text-[9px] text-blue-400 font-bold uppercase tracking-widest mt-1">{profile?.role === 'instructor' ? 'Instructor' : 'PPL Candidate'}</p>
-              </div>
-            </div>
-          </div>
-        </aside>
+        <nav className="flex-1 px-4 py-4 space-y-1">
+          {[
+            { id: 'dashboard', label: 'Command Deck', icon: LayoutDashboard },
+            { id: 'hours', label: 'Tech Logbook', icon: Clock },
+            { id: 'ground', label: 'Ground School', icon: BookOpen },
+            { id: 'compliance', label: 'KCAA Audit', icon: ShieldCheck },
+            ...(profile?.role === 'instructor' ? [
+              { id: 'students', label: 'Student Roster', icon: GraduationCap },
+              { id: 'instructor', label: 'Instructor Desk', icon: FileCheck },
+            ] : []),
+          ].map(item => (
+            <button key={item.id} onClick={() => setView(item.id)} className={`flex w-full items-center gap-4 px-4 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${view === item.id ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/30' : 'text-slate-500 hover:bg-white/5 hover:text-white'}`}>
+              <item.icon size={18} strokeWidth={3} /> {item.label}
+            </button>
+          ))}
+        </nav>
 
-        {/* CONTENT */}
-        <main className="flex-1 p-12 overflow-auto">
-          <header className="flex justify-between items-end mb-12">
+        <div className="p-6 bg-blue-600/5 border-t border-white/5">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-black shadow-xl">{studentName.slice(0, 2).toUpperCase()}</div>
             <div>
-              <div className="flex items-center gap-3 mb-2">
-                <Badge color="green">{selectedAirportLabel} Ops ({selectedAirport})</Badge>
-                <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">April 11, 2026 • 20:01 EAT</div>
-              </div>
-              <h1 className="text-6xl font-black text-white tracking-tighter uppercase italic drop-shadow-2xl">
-                {view === 'dashboard' && "The Deck"}
-                {view === 'hours' && "Certified Log"}
-                {view === 'ground' && "Ground Matrix"}
-                {view === 'compliance' && "KCAA Audit Status"}
-              </h1>
-              <div className="mt-3 text-slate-400 text-sm uppercase tracking-widest">
-                <div>Local time: {formatDigitalTime(currentTime)}</div>
-                <div className="mt-1 text-[10px] text-slate-500">Next flight countdown: {countdown}</div>
-                <div className="mt-3 flex flex-wrap gap-3 items-center">
-                  <label className="text-[10px] uppercase tracking-widest text-slate-500">Airport</label>
-                  <select
-                    value={selectedAirport}
-                    onChange={(event) => setSelectedAirport(event.target.value)}
-                    className="rounded-2xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white outline-none"
-                  >
-                    {AIRPORTS.map((airport) => (
-                      <option key={airport.code} value={airport.code}>{airport.label}</option>
-                    ))}
-                  </select>
-                </div>
+              <p className="text-sm font-black text-white">{studentName}</p>
+              <p className="text-[9px] text-blue-400 font-bold uppercase tracking-widest mt-1">{profile?.role === 'instructor' ? 'Instructor' : 'PPL Candidate'}</p>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* CONTENT */}
+      <main className="flex-1 p-12 overflow-auto">
+        <header className="flex justify-between items-end mb-12">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <Badge color="green">{selectedAirportLabel} Ops ({selectedAirport})</Badge>
+              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">April 11, 2026 • 20:01 EAT</div>
+            </div>
+            <h1 className="text-6xl font-black text-white tracking-tighter uppercase italic drop-shadow-2xl">
+              {view === 'dashboard' && (lang === 'en' ? "The Deck" : "Le Pont")}
+              {view === 'hours' && (lang === 'en' ? "Certified Log" : "Registre Certifié")}
+              {view === 'ground' && (lang === 'en' ? "Ground Matrix" : "Matrice de Sol")}
+              {view === 'compliance' && (lang === 'en' ? "KCAA Audit Status" : "Statut d'Audit KCAA")}
+            </h1>
+
+            <div className="mt-3 text-slate-400 text-sm uppercase tracking-widest">              <div>Local time: {formatDigitalTime(currentTime)}</div>
+              <div className="mt-1 text-[10px] text-slate-500">Next flight countdown: {countdown}</div>
+              <div className="mt-3 flex flex-wrap gap-3 items-center">
+                <label className="text-[10px] uppercase tracking-widest text-slate-500">Airport</label>
+                <select
+                  value={selectedAirport}
+                  onChange={(event) => setSelectedAirport(event.target.value)}
+                  className="rounded-2xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white outline-none"
+                >
+                  {AIRPORTS.map((airport) => (
+                    <option key={airport.code} value={airport.code}>{airport.label}</option>
+                  ))}
+                </select>
               </div>
             </div>
-            <Button className="px-10 py-4" onClick={() => {
-              setShowNewEntryForm((open) => !open);
-              setFormMessage({ type: '', text: '' });
-            }}>
-              <Plus size={20} /> {showNewEntryForm ? 'Close Form' : 'New Entry'}
-            </Button>
-          </header>
+          </div>
+          <Button className="px-10 py-4" onClick={() => {
+            setShowNewEntryForm((open) => !open);
+            setFormMessage({ type: '', text: '' });
+          }}>
+            <Plus size={20} /> {showNewEntryForm ? 'Close Form' : 'New Entry'}
+          </Button>
+        </header>
 
-          {showNewEntryForm && (
-            <Card className="mb-10 border border-blue-500/20 bg-slate-950/90">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-xl font-black text-white uppercase tracking-tighter">Create New Flight Entry</h2>
-                  <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Saves a new row to the Supabase `flights` table.</p>
-                </div>
-                <Badge color="blue">Draft</Badge>
+        {showNewEntryForm && (
+          <Card className="mb-10 border border-blue-500/20 bg-slate-950/90">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-black text-white uppercase tracking-tighter">Create New Flight Entry</h2>
+                <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Saves a new row to the Supabase `flights` table.</p>
               </div>
+              <Badge color="blue">Draft</Badge>
+            </div>
 
-              <div className="grid gap-4 md:grid-cols-5">
-                {[
-                  { label: 'Date', key: 'date', placeholder: 'Apr 12, 2026' },
-                  { label: 'Aircraft', key: 'type', placeholder: 'Cessna 172' },
-                  { label: 'Reg', key: 'reg', placeholder: '5Y-KQA' },
-                  { label: 'Instructor', key: 'instructor', placeholder: 'Capt. Name' },
-                  { label: 'Duration', key: 'dur', placeholder: '1.5' },
-                ].map((field) => (
-                  <label key={field.key} className="block text-[10px] uppercase tracking-widest text-slate-400">
-                    <span className="text-slate-300 font-black">{field.label}</span>
-                    <input
-                      value={(entryForm as any)[field.key]}
-                      onChange={(event) => setEntryForm((prev) => ({ ...prev, [field.key]: event.target.value }))}
-                      placeholder={field.placeholder}
-                      className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-sm text-white outline-none transition focus:border-blue-500/70"
-                    />
-                  </label>
-                ))}
-              </div>
+            <div className="grid gap-4 md:grid-cols-5">
+              {[
+                { label: 'Date', key: 'date', placeholder: 'Apr 12, 2026' },
+                { label: 'Aircraft', key: 'type', placeholder: 'Cessna 172' },
+                { label: 'Reg', key: 'reg', placeholder: '5Y-KQA' },
+                { label: 'Instructor', key: 'instructor', placeholder: 'Capt. Name' },
+                { label: 'Duration', key: 'dur', placeholder: '1.5' },
+              ].map((field) => (
+                <label key={field.key} className="block text-[10px] uppercase tracking-widest text-slate-400">
+                  <span className="text-slate-300 font-black">{field.label}</span>
+                  <input
+                    value={(entryForm as any)[field.key]}
+                    onChange={(event) => setEntryForm((prev) => ({ ...prev, [field.key]: event.target.value }))}
+                    placeholder={field.placeholder}
+                    className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-sm text-white outline-none transition focus:border-blue-500/70"
+                  />
+                </label>
+              ))}
+            </div>
 
-              {formMessage.text && (
-                <p className={`mt-4 text-sm ${formMessage.type === 'error' ? 'text-rose-400' : 'text-emerald-400'}`}>{formMessage.text}</p>
-              )}
+            {formMessage.text && (
+              <p className={`mt-4 text-sm ${formMessage.type === 'error' ? 'text-rose-400' : 'text-emerald-400'}`}>{formMessage.text}</p>
+            )}
 
-              <div className="mt-6 flex flex-wrap gap-3 items-center">
-                <Button
-                  className="px-8 py-3"
-                  onClick={async () => {
-                    const requiredFields = ['date', 'type', 'reg', 'instructor', 'dur'];
-                    const missing = requiredFields.filter((key) => !(entryForm as any)[key]);
-                    if (missing.length) {
-                      setFormMessage({ type: 'error', text: 'Please fill all fields before saving.' });
+            <div className="mt-6 flex flex-wrap gap-3 items-center">
+              <Button
+                className="px-8 py-3"
+                onClick={async () => {
+                  const requiredFields = ['date', 'type', 'reg', 'instructor', 'dur'];
+                  const missing = requiredFields.filter((key) => !(entryForm as any)[key]);
+                  if (missing.length) {
+                    setFormMessage({ type: 'error', text: 'Please fill all fields before saving.' });
+                    return;
+                  }
+
+                  const newRow = {
+                    date: entryForm.date,
+                    type: entryForm.type,
+                    reg: entryForm.reg,
+                    instructor: entryForm.instructor,
+                    dur: entryForm.dur,
+                  };
+
+                  setIsSubmitting(true);
+                  try {
+                    const response = await fetch('/api/flights', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(newRow),
+                    });
+                    const result = await response.json();
+
+                    if (!response.ok) {
+                      setFormMessage({ type: 'error', text: result?.error || 'Unable to save entry.' });
                       return;
                     }
 
-                    const newRow = {
-                      date: entryForm.date,
-                      type: entryForm.type,
-                      reg: entryForm.reg,
-                      instructor: entryForm.instructor,
-                      dur: entryForm.dur,
-                    };
+                    setFormMessage({ type: 'success', text: 'New entry saved successfully.' });
+                    setEntryForm({ date: '', type: '', reg: '', instructor: '', dur: '' });
+                    await loadFlightRows();
+                  } catch (error) {
+                    console.error('Save failed', error);
+                    setFormMessage({ type: 'error', text: 'Unable to save entry.' });
+                  } finally {
+                    setIsSubmitting(false);
+                  }
+                }}
+              >
+                {isSubmitting ? 'Saving...' : 'Save Entry'}
+              </Button>
+              <button
+                type="button"
+                className="text-[10px] uppercase tracking-wider text-slate-300 font-black px-4 py-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10"
+                onClick={() => {
+                  setShowNewEntryForm(false);
+                  setFormMessage({ type: '', text: '' });
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </Card>
+        )}
 
-                    setIsSubmitting(true);
-                    try {
-                      const response = await fetch('/api/flights', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(newRow),
-                      });
-                      const result = await response.json();
-
-                      if (!response.ok) {
-                        setFormMessage({ type: 'error', text: result?.error || 'Unable to save entry.' });
-                        return;
-                      }
-
-                      setFormMessage({ type: 'success', text: 'New entry saved successfully.' });
-                      setEntryForm({ date: '', type: '', reg: '', instructor: '', dur: '' });
-                      await loadFlightRows();
-                    } catch (error) {
-                      console.error('Save failed', error);
-                      setFormMessage({ type: 'error', text: 'Unable to save entry.' });
-                    } finally {
-                      setIsSubmitting(false);
-                    }
-                  }}
-                >
-                  {isSubmitting ? 'Saving...' : 'Save Entry'}
-                </Button>
-                <button
-                  type="button"
-                  className="text-[10px] uppercase tracking-wider text-slate-300 font-black px-4 py-3 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10"
-                  onClick={() => {
-                    setShowNewEntryForm(false);
-                    setFormMessage({ type: '', text: '' });
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </Card>
-          )}
-
-          {/* VIEW: DASHBOARD (Includes Live Dispatch & Weather) */}
-          {view === 'dashboard' && (
-            <div className="space-y-8">
-              {/* DISPATCH CENTER */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <Card className={`border-l-8 ${weather.isSafeForSolo ? 'border-emerald-500' : 'border-rose-500'} bg-black/80`}>
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">Smart Dispatch Logic</h3>
-                      <p className="text-[9px] text-slate-400 uppercase tracking-widest mt-1">Wilson (HKNW) live readiness</p>
-                    </div>
-                    <Badge color={weather.isSafeForSolo ? 'green' : 'amber'}>{weather.isDay ? 'Day Ops' : 'Night Ops'}</Badge>
+        {/* VIEW: DASHBOARD (Includes Live Dispatch & Weather) */}
+        {view === 'dashboard' && (
+          <div className="space-y-8">
+            {/* DISPATCH CENTER */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <Card className={`border-l-8 ${weather.isSafeForSolo ? 'border-emerald-500' : 'border-rose-500'} bg-black/80`}>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">Smart Dispatch Logic</h3>
+                    <p className="text-[9px] text-slate-400 uppercase tracking-widest mt-1">Wilson (HKNW) live readiness</p>
                   </div>
-                  <div className="flex items-center gap-4">
-                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${weather.isSafeForSolo ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'}`}>
-                      {weather.isSafeForSolo ? <UserCheck size={32} /> : <XCircle size={32} />}
-                    </div>
-                    <div>
-                      <p className="text-xl font-black text-white uppercase italic">{weather.isSafeForSolo ? "Go For Flight" : "Stay Grounded"}</p>
-                      <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tight">{weather.reason}</p>
-                      {!weather.isSafeForSolo && (
-                        <div className="mt-3 space-y-1">
-                          <p className="text-[10px] text-slate-300 uppercase tracking-widest">Predicted safe window: {safeWindowLabel}</p>
-                          <p className="text-[10px] text-rose-300 uppercase tracking-widest">Reason: {weather.reason}</p>
-                        </div>
-                      )}
-                    </div>
+                  <Badge color={weather.isSafeForSolo ? 'green' : 'amber'}>{weather.isDay ? 'Day Ops' : 'Night Ops'}</Badge>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${weather.isSafeForSolo ? 'bg-emerald-500/20 text-emerald-500' : 'bg-rose-500/20 text-rose-500'}`}>
+                    {weather.isSafeForSolo ? <UserCheck size={32} /> : <XCircle size={32} />}
                   </div>
-                </Card>
-
-                <Card className="md:col-span-2 bg-slate-950/80 border-white/5">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">Supabase Flights</h3>
-                      <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Live data from your connected database</p>
-                      <p className="mt-1 text-[9px] text-slate-500">{dbRows.length > 0 ? `${dbRows.length} records synced` : 'No rows found yet. Add a new flight entry.'}</p>
-                      <p className="mt-1 text-[9px] text-slate-500">Last sync: {lastSync || 'waiting...'}</p>
-                      {flightMessage.text && (
-                        <p className={`mt-1 text-[9px] ${flightMessage.type === 'error' ? 'text-rose-400' : 'text-emerald-400'}`}>{flightMessage.text}</p>
-                      )}
-                    </div>
-                    <Badge color={dbRows.length > 0 ? 'green' : 'amber'}>{dbRows.length > 0 ? 'Connected' : 'No Data'}</Badge>
-                  </div>
-
-                  {dbRows.length > 0 ? (
-                    <div className="overflow-auto rounded-3xl border border-white/5 bg-black/70">
-                      <table className="min-w-full text-left text-[10px] text-slate-300">
-                        <thead className="border-b border-white/10 bg-white/5 text-slate-500 uppercase tracking-widest">
-                          <tr>
-                            <th className="px-4 py-3">Date</th>
-                            <th className="px-4 py-3">Aircraft</th>
-                            <th className="px-4 py-3">Reg</th>
-                            <th className="px-4 py-3">Instructor</th>
-                            <th className="px-4 py-3">Dur</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {flightTableRows.map((row, index) => (
-                            <tr key={index} className="border-b border-white/10 hover:bg-white/5">
-                              <td className="px-4 py-3">{row.date}</td>
-                              <td className="px-4 py-3">{row.type}</td>
-                              <td className="px-4 py-3">{row.reg}</td>
-                              <td className="px-4 py-3">{row.instructor}</td>
-                              <td className="px-4 py-3">{row.dur}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  ) : (
-                    <div className="rounded-3xl border border-dashed border-white/10 bg-white/5 p-9 text-center">
-                      <p className="text-[10px] text-slate-400 uppercase tracking-widest">No Supabase rows loaded yet (or table is empty).</p>
-                    </div>
-                  )}
-                </Card>
-
-                <Card className="md:col-span-2 bg-slate-950/80 border-white/5">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">Training Schedule</h3>
-                      <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Next scheduled slot and live countdown</p>
-                      <p className="mt-1 text-[9px] text-slate-500">Next slot: {nextFlight.time} · {nextFlight.type}</p>
-                      <p className="mt-1 text-[9px] text-slate-500">Arrives in: {nextFlightCountdown}</p>
-                    </div>
-                    <Badge color={nextFlightCountdown.startsWith('00h') ? 'green' : 'blue'}>{nextFlight.label}</Badge>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {scheduleWithDates.slice(0, 4).map((slot) => (
-                      <div key={slot.time} className="rounded-3xl bg-white/5 p-4 border border-white/10">
-                        <p className="text-[10px] uppercase tracking-widest text-slate-500">{slot.label}</p>
-                        <p className="mt-2 text-sm font-black text-white">{slot.time}</p>
-                        <p className="mt-1 text-[10px] text-slate-400">{slot.type}</p>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-
-                <Card className="md:col-span-2 bg-blue-950/80 border border-blue-500/10 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">SkyTrack 2050 AI Ops</h3>
-                      <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Predictive aviation operations and risk mitigation</p>
-                    </div>
-                    <Badge color="purple">FUTURE READY</Badge>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="rounded-3xl bg-white/5 p-4 border border-white/10">
-                      <p className="text-[9px] uppercase tracking-widest text-slate-500">Optimal launch window</p>
-                      <p className="mt-2 text-sm font-black text-white">{safeWindowLabel}</p>
-                    </div>
-                    <div className="rounded-3xl bg-white/5 p-4 border border-white/10">
-                      <p className="text-[9px] uppercase tracking-widest text-slate-500">Student readiness</p>
-                      <p className="mt-2 text-sm font-black text-white">{weather.isSafeForSolo ? 'Ready for student solo ops' : 'Hold until conditions improve'}</p>
-                    </div>
-                    <div className="rounded-3xl bg-white/5 p-4 border border-white/10">
-                      <p className="text-[9px] uppercase tracking-widest text-slate-500">Issue coverage</p>
-                      <ul className="mt-2 list-disc list-inside text-[10px] text-slate-300">
-                        <li>Weather automation</li>
-                        <li>Next-slot planning</li>
-                        <li>Live log sync</li>
-                        <li>Compliance-ready status</li>
-                      </ul>
-                    </div>
-                  </div>
-                </Card>
-
-                <Card className="md:col-span-2 bg-slate-950/90 border border-white/10 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">SkyTrack Assistant</h3>
-                      <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Smart aviation chatbot for safety, schedule, and weather questions</p>
-                    </div>
-                    <Badge color="blue">AI</Badge>
-                  </div>
-                  <div className="space-y-3 max-h-[420px] overflow-y-auto pr-2">
-                    {assistantMessages.map((msg, index) => (
-                      <div key={index} className={`rounded-3xl p-4 ${msg.role === 'assistant' ? 'bg-blue-500/10 border border-blue-500/10' : 'bg-white/5 border border-white/10'} ${msg.role === 'assistant' ? 'ml-0' : 'ml-6'}`}>
-                        <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{msg.role === 'assistant' ? 'SkyTrack' : 'You'}</p>
-                        <p className="text-sm text-slate-200">{msg.content}</p>
-                      </div>
-                    ))}
-                    {isAssistantTyping && (
-                      <div className="rounded-3xl p-4 bg-blue-500/10 border border-blue-500/10">
-                        <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">SkyTrack</p>
-                        <p className="text-sm text-slate-200">Thinking...</p>
+                  <div>
+                    <p className="text-xl font-black text-white uppercase italic">{weather.isSafeForSolo ? "Go For Flight" : "Stay Grounded"}</p>
+                    <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-tight">{weather.reason}</p>
+                    {!weather.isSafeForSolo && (
+                      <div className="mt-3 space-y-1">
+                        <p className="text-[10px] text-slate-300 uppercase tracking-widest">Predicted safe window: {safeWindowLabel}</p>
+                        <p className="text-[10px] text-rose-300 uppercase tracking-widest">Reason: {weather.reason}</p>
                       </div>
                     )}
                   </div>
-                  <div className="mt-4 flex gap-3">
-                    <input
-                      value={assistantInput}
-                      onChange={(event) => setAssistantInput(event.target.value)}
-                      onKeyDown={(event) => event.key === 'Enter' && handleAssistantSubmit()}
-                      placeholder="Ask about safety, weather or the next flight"
-                      className="flex-1 rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-sm text-white outline-none focus:border-blue-500/70"
-                    />
-                    <button
-                      type="button"
-                      className="rounded-2xl bg-blue-600 px-5 py-3 text-[10px] uppercase tracking-widest font-black text-white hover:bg-blue-700"
-                      onClick={handleAssistantSubmit}
-                    >
-                      Send
-                    </button>
-                  </div>
-                </Card>
+                </div>
+              </Card>
 
-                <Card className="md:col-span-2 grid grid-cols-4 gap-4">
-                  <div className="md:col-span-4 rounded-3xl border border-white/10 bg-white/5 p-4 mb-4">
-                    <p className="text-[10px] uppercase tracking-widest text-slate-500">Weather source</p>
-                    <div className="mt-2 flex items-center justify-between gap-3">
-                      <span className="text-sm font-black text-white uppercase">{weatherSource}</span>
-                      <span className={`text-[10px] ${weatherMessage.type === 'error' ? 'text-rose-400' : 'text-emerald-400'}`}>{weatherMessage.text || 'Updated every 15s'}</span>
-                    </div>
+              <Card className="md:col-span-2 bg-slate-950/80 border-white/5">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">Supabase Flights</h3>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Live data from your connected database</p>
+                    <p className="mt-1 text-[9px] text-slate-500">{dbRows.length > 0 ? `${dbRows.length} records synced` : 'No rows found yet. Add a new flight entry.'}</p>
+                    <p className="mt-1 text-[9px] text-slate-500">Last sync: {lastSync || 'waiting...'}</p>
+                    {flightMessage.text && (
+                      <p className={`mt-1 text-[9px] ${flightMessage.type === 'error' ? 'text-rose-400' : 'text-emerald-400'}`}>{flightMessage.text}</p>
+                    )}
                   </div>
-                   <div className="border-r border-white/5 pr-4">
-                      <p className="text-[10px] font-black text-slate-500 uppercase mb-2 flex items-center gap-1"><Wind size={12}/> Winds</p>
-                      <p className="text-xl font-black text-white uppercase tracking-tighter">{weather.wind}</p>
-                   </div>
-                   <div className="border-r border-white/5 pr-4">
-                      <p className="text-[10px] font-black text-slate-500 uppercase mb-2 flex items-center gap-1"><Eye size={12}/> Visibility</p>
-                      <p className="text-xl font-black text-white uppercase tracking-tighter">{weather.visibility}</p>
-                   </div>
-                   <div className="border-r border-white/5 pr-4">
-                      <p className="text-[10px] font-black text-slate-500 uppercase mb-2 flex items-center gap-1"><CloudSun size={12}/> Sky</p>
-                      <p className="text-xl font-black text-white uppercase tracking-tighter">{weather.condition}</p>
-                   </div>
-                   <div>
-                      <p className="text-[10px] font-black text-slate-500 uppercase mb-2 flex items-center gap-1"><Thermometer size={12}/> Temp</p>
-                      <p className="text-xl font-black text-white uppercase tracking-tighter">{weather.temp}°C</p>
-                   </div>
-                </Card>
-              </div>
+                  <Badge color={dbRows.length > 0 ? 'green' : 'amber'}>{dbRows.length > 0 ? 'Connected' : 'No Data'}</Badge>
+                </div>
 
-              {/* TRAINING PROGRESS (Gauges) */}
-              <div className="grid grid-cols-2 md:grid-cols-6 gap-6">
-                {[
-                  { l: "Total Hours", v: 13.3, m: 40, r: "26.7 hrs rem." },
-                  { l: "Solo Hours", v: 4.7, m: 10, r: "5.3 hrs rem." },
-                  { l: "Night Flying", v: 1.0, m: 5, r: "4.0 hrs rem." },
-                  { l: "Instrument", v: 1.7, m: 3, r: "1.3 hrs rem." },
-                  { l: "Cross-Country", v: 5.8, m: 5, r: "Met", ok: true },
-                  { l: "Dual Inst.", v: 8.6, m: 20, r: "11.4 hrs rem." },
-                ].map(g => (
-                  <div key={g.l} className="bg-white/5 p-5 rounded-3xl border border-white/5 text-center group hover:border-blue-500/30 transition-all">
-                    <p className="text-[9px] font-black text-slate-500 uppercase mb-3">{g.l}</p>
-                    <div className="text-2xl font-black text-white italic">{g.v}<span className="text-[10px] text-slate-600 ml-1">/{g.m}</span></div>
-                    <div className="mt-3 h-1 w-full bg-slate-900 rounded-full"><div className={`h-full ${g.ok ? 'bg-emerald-500' : 'bg-blue-600'} rounded-full`} style={{ width: `${(g.v/g.m)*100}%` }} /></div>
-                    <p className={`text-[8px] font-bold mt-3 uppercase ${g.ok ? 'text-emerald-500' : 'text-slate-500'}`}>{g.r}</p>
+                {dbRows.length > 0 ? (
+                  <div className="overflow-auto rounded-3xl border border-white/5 bg-black/70">
+                    <table className="min-w-full text-left text-[10px] text-slate-300">
+                      <thead className="border-b border-white/10 bg-white/5 text-slate-500 uppercase tracking-widest">
+                        <tr>
+                          <th className="px-4 py-3">Date</th>
+                          <th className="px-4 py-3">Aircraft</th>
+                          <th className="px-4 py-3">Reg</th>
+                          <th className="px-4 py-3">Instructor</th>
+                          <th className="px-4 py-3">Dur</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {flightTableRows.map((row, index) => (
+                          <tr key={index} className="border-b border-white/10 hover:bg-white/5">
+                            <td className="px-4 py-3">{row.date}</td>
+                            <td className="px-4 py-3">{row.type}</td>
+                            <td className="px-4 py-3">{row.reg}</td>
+                            <td className="px-4 py-3">{row.instructor}</td>
+                            <td className="px-4 py-3">{row.dur}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                ))}
-              </div>
-
-              {/* ACTION REQUIRED & COMPLETED */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <Card className="border-t-4 border-t-rose-500">
-                  <h3 className="font-black text-xl text-white uppercase italic tracking-tighter mb-6">Action Required: Compliance</h3>
-                  <div className="space-y-4">
-                    {[
-                      { l: "Solo Flight Time", n: "1.5 hrs needed", p: "8.5 / 10h" },
-                      { l: "Night Flying", n: "4.0 hrs needed", p: "1.0 / 5h" },
-                      { l: "Cross-Country (Solo)", n: "1.5 hrs needed", p: "3.5 / 5h" },
-                      { l: "Instrument Training", n: "1.3 hrs needed", p: "1.7 / 3h" },
-                    ].map(a => (
-                      <div key={a.l} className="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/5">
-                        <div><p className="text-sm font-black text-white uppercase italic">{a.l}</p><p className="text-[10px] text-rose-400 font-bold uppercase mt-1 italic">{a.n}</p></div>
-                        <p className="font-black text-slate-500">{a.p}</p>
-                      </div>
-                    ))}
+                ) : (
+                  <div className="rounded-3xl border border-dashed border-white/10 bg-white/5 p-9 text-center">
+                    <p className="text-[10px] text-slate-400 uppercase tracking-widest">No Supabase rows loaded yet (or table is empty).</p>
                   </div>
-                </Card>
+                )}
+              </Card>
 
-                <Card className="border-t-4 border-t-emerald-500">
-                  <h3 className="font-black text-xl text-white uppercase italic tracking-tighter mb-6">Completed Requirements</h3>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center bg-emerald-500/5 p-4 rounded-xl border border-emerald-500/10">
-                      <div><p className="text-sm font-black text-white uppercase italic">Total Flight Time</p><p className="text-[10px] text-emerald-500 font-black uppercase mt-1">45.0 / 40h</p></div>
-                      <Badge color="green">Complete</Badge>
-                    </div>
-                    <div className="flex justify-between items-center bg-emerald-500/5 p-4 rounded-xl border border-emerald-500/10">
-                      <div><p className="text-sm font-black text-white uppercase italic">Dual Instruction</p><p className="text-[10px] text-emerald-500 font-black uppercase mt-1">25.3 / 20h</p></div>
-                      <Badge color="green">Complete</Badge>
-                    </div>
+              <Card className="md:col-span-2 bg-slate-950/80 border-white/5">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">Training Schedule</h3>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Next scheduled slot and live countdown</p>
+                    <p className="mt-1 text-[9px] text-slate-500">Next slot: {nextFlight.time} · {nextFlight.type}</p>
+                    <p className="mt-1 text-[9px] text-slate-500">Arrives in: {nextFlightCountdown}</p>
                   </div>
-                </Card>
-              </div>
-            </div>
-          )}
-
-          {/* VIEW: COMPLIANCE (KCAA Audit) */}
-          {view === 'compliance' && (
-            <Card>
-              <h3 className="text-2xl font-black text-white uppercase italic mb-8">KCAA Official Audit Status</h3>
-              <div className="grid gap-6">
-                {[
-                  { label: "PPL Training Syllabus (Phase 1-4)", progress: 65, status: "Ongoing" },
-                  { label: "Night Flight Rating Requirement", progress: 20, status: "Underway" },
-                  { label: "Cross-Country Proficiency (150nm Solo)", progress: 100, status: "Verified" },
-                  { label: "Instrument Awareness Training", progress: 56, status: "Ongoing" },
-                  { label: "Radio Operations Certificate", progress: 100, status: "Licensed" },
-                  { label: "Class 2 Medical Certification", progress: 100, status: "Valid until 2027" }
-                ].map(item => (
-                  <div key={item.label} className="flex items-center justify-between bg-white/5 p-5 rounded-2xl border border-white/5">
-                    <div className="w-2/3">
-                      <div className="flex items-center gap-3 mb-2">
-                        <p className="font-black text-white uppercase italic tracking-tighter">{item.label}</p>
-                        <Badge color={item.progress === 100 ? "green" : "blue"}>{item.status}</Badge>
-                      </div>
-                      <Progress val={item.progress} max={100} />
-                    </div>
-                    <div className="text-2xl font-black text-white italic">{item.progress}%</div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
-
-          {/* VIEW: GROUND SCHOOL MATRIX */}
-          {view === 'ground' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <Card className="md:col-span-2">
-                <h3 className="text-2xl font-black text-white uppercase italic mb-8">Syllabus Completion Matrix</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {groundSchoolModules.map(m => (
-                    <div key={m.name} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5 group hover:bg-blue-600/10 transition-all">
-                      <p className="text-xs font-black text-slate-300 uppercase italic tracking-tighter">{m.name}</p>
-                      <div className="text-right">
-                        {m.score > 0 ? (
-                          <span className="text-lg font-black text-emerald-400">{m.score}%</span>
-                        ) : (
-                          <span className="text-[10px] font-black text-slate-600 uppercase italic">Pending</span>
-                        )}
-                      </div>
+                  <Badge color={nextFlightCountdown.startsWith('00h') ? 'green' : 'blue'}>{nextFlight.label}</Badge>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {scheduleWithDates.slice(0, 4).map((slot) => (
+                    <div key={slot.time} className="rounded-3xl bg-white/5 p-4 border border-white/10">
+                      <p className="text-[10px] uppercase tracking-widest text-slate-500">{slot.label}</p>
+                      <p className="mt-2 text-sm font-black text-white">{slot.time}</p>
+                      <p className="mt-1 text-[10px] text-slate-400">{slot.type}</p>
                     </div>
                   ))}
                 </div>
               </Card>
-            </div>
-          )}
 
-          {/* VIEW: TECHNICAL LOGBOOK (WITH TOTAL) */}
-          {view === 'hours' && (
-            <Card>
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
-                <h3 className="text-2xl font-black text-white uppercase italic underline underline-offset-8 decoration-blue-500">Certified Technical Log</h3>
-                <Button onClick={() => downloadLogbookCsv(profile, dbRows)} className="bg-emerald-500 hover:bg-emerald-600">
-                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                    <path fillRule="evenodd" d="M3 4.5A1.5 1.5 0 014.5 3h11A1.5 1.5 0 0117 4.5v11a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 013 15.5v-11zm4 2.5a.75.75 0 01.75-.75h.5a.75.75 0 01.75.75V11h1.25a.75.75 0 010 1.5H8.5V8.5z" clipRule="evenodd" />
-                  </svg>
-                  Export Logbook CSV
-                </Button>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/10">
-                      <th className="pb-6">Date</th><th className="pb-6">Aircraft</th><th className="pb-6">Reg</th><th className="pb-6">Instructor</th><th className="pb-6">Night</th><th className="pb-6 text-right">Block Time</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5 font-mono text-sm">
-                    {flights.map((f, i) => (
-                      <tr key={i} className="hover:bg-blue-500/5 transition-colors">
-                        <td className="py-6 font-black text-white italic">{f.date}</td>
-                        <td className="py-6 text-slate-400">{f.type}</td>
-                        <td className="py-6"><Badge>{f.reg}</Badge></td>
-                        <td className="py-6 text-slate-500 italic">{f.inst}</td>
-                        <td className="py-6 text-indigo-400 font-bold">{f.night}h</td>
-                        <td className="py-6 text-right font-black text-blue-500 text-lg italic">{f.dur}h</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr className="bg-blue-600/10 border-t-2 border-blue-500">
-                      <td colSpan={5} className="py-8 pl-8 text-2xl font-black text-white uppercase italic tracking-tighter">Grand Total Flight Hours</td>
-                      <td className="py-8 pr-8 text-right text-4xl font-black text-blue-500 italic underline decoration-white/20">{totalHrs.toFixed(1)}h</td>
-                    </tr>
-                  </tfoot>
-                </table>
+              <Card className="md:col-span-2 bg-blue-950/80 border border-blue-500/10 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">SkyTrack 2050 AI Ops</h3>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Predictive aviation operations and risk mitigation</p>
+                  </div>
+                  <Badge color="purple">FUTURE READY</Badge>
+                </div>
+                <div className="space-y-3">
+                  <div className="rounded-3xl bg-white/5 p-4 border border-white/10">
+                    <p className="text-[9px] uppercase tracking-widest text-slate-500">Optimal launch window</p>
+                    <p className="mt-2 text-sm font-black text-white">{safeWindowLabel}</p>
+                  </div>
+                  <div className="rounded-3xl bg-white/5 p-4 border border-white/10">
+                    <p className="text-[9px] uppercase tracking-widest text-slate-500">Student readiness</p>
+                    <p className="mt-2 text-sm font-black text-white">{weather.isSafeForSolo ? 'Ready for student solo ops' : 'Hold until conditions improve'}</p>
+                  </div>
+                  <div className="rounded-3xl bg-white/5 p-4 border border-white/10">
+                    <p className="text-[9px] uppercase tracking-widest text-slate-500">Issue coverage</p>
+                    <ul className="mt-2 list-disc list-inside text-[10px] text-slate-300">
+                      <li>Weather automation</li>
+                      <li>Next-slot planning</li>
+                      <li>Live log sync</li>
+                      <li>Compliance-ready status</li>
+                    </ul>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="md:col-span-2 bg-slate-950/90 border border-white/10 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">SkyTrack Assistant</h3>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Smart aviation chatbot for safety, schedule, and weather questions</p>
+                  </div>
+                  <Badge color="blue">AI</Badge>
+                </div>
+                <div className="space-y-3 max-h-[420px] overflow-y-auto pr-2">
+                  {assistantMessages.map((msg, index) => (
+                    <div key={index} className={`rounded-3xl p-4 ${msg.role === 'assistant' ? 'bg-blue-500/10 border border-blue-500/10' : 'bg-white/5 border border-white/10'} ${msg.role === 'assistant' ? 'ml-0' : 'ml-6'}`}>
+                      <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">{msg.role === 'assistant' ? 'SkyTrack' : 'You'}</p>
+                      <p className="text-sm text-slate-200">{msg.content}</p>
+                    </div>
+                  ))}
+                  {isAssistantTyping && (
+                    <div className="rounded-3xl p-4 bg-blue-500/10 border border-blue-500/10">
+                      <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">SkyTrack</p>
+                      <p className="text-sm text-slate-200">Thinking...</p>
+                    </div>
+                  )}
+                </div>
+                <div className="mt-4 flex gap-3">
+                  <input
+                    value={assistantInput}
+                    onChange={(event) => setAssistantInput(event.target.value)}
+                    onKeyDown={(event) => event.key === 'Enter' && handleAssistantSubmit()}
+                    placeholder="Ask about safety, weather or the next flight"
+                    className="flex-1 rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-sm text-white outline-none focus:border-blue-500/70"
+                  />
+                  <button
+                    type="button"
+                    className="rounded-2xl bg-blue-600 px-5 py-3 text-[10px] uppercase tracking-widest font-black text-white hover:bg-blue-700"
+                    onClick={handleAssistantSubmit}
+                  >
+                    Send
+                  </button>
+                </div>
+              </Card>
+
+              <Card className="md:col-span-2 grid grid-cols-4 gap-4">
+                <div className="md:col-span-4 rounded-3xl border border-white/10 bg-white/5 p-4 mb-4">
+                  <p className="text-[10px] uppercase tracking-widest text-slate-500">Weather source</p>
+                  <div className="mt-2 flex items-center justify-between gap-3">
+                    <span className="text-sm font-black text-white uppercase">{weatherSource}</span>
+                    <span className={`text-[10px] ${weatherMessage.type === 'error' ? 'text-rose-400' : 'text-emerald-400'}`}>{weatherMessage.text || 'Updated every 15s'}</span>
+                  </div>
+                </div>
+                <div className="border-r border-white/5 pr-4">
+                  <p className="text-[10px] font-black text-slate-500 uppercase mb-2 flex items-center gap-1"><Wind size={12} /> Winds</p>
+                  <p className="text-xl font-black text-white uppercase tracking-tighter">{weather.wind}</p>
+                </div>
+                <div className="border-r border-white/5 pr-4">
+                  <p className="text-[10px] font-black text-slate-500 uppercase mb-2 flex items-center gap-1"><Eye size={12} /> Visibility</p>
+                  <p className="text-xl font-black text-white uppercase tracking-tighter">{weather.visibility}</p>
+                </div>
+                <div className="border-r border-white/5 pr-4">
+                  <p className="text-[10px] font-black text-slate-500 uppercase mb-2 flex items-center gap-1"><CloudSun size={12} /> Sky</p>
+                  <p className="text-xl font-black text-white uppercase tracking-tighter">{weather.condition}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-black text-slate-500 uppercase mb-2 flex items-center gap-1"><Thermometer size={12} /> Temp</p>
+                  <p className="text-xl font-black text-white uppercase tracking-tighter">{weather.temp}°C</p>
+                </div>
+              </Card>
+            </div>
+
+            {/* TRAINING PROGRESS (Gauges) */}
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-6">
+              {[
+                { l: "Total Hours", v: 13.3, m: 40, r: "26.7 hrs rem." },
+                { l: "Solo Hours", v: 4.7, m: 10, r: "5.3 hrs rem." },
+                { l: "Night Flying", v: 1.0, m: 5, r: "4.0 hrs rem." },
+                { l: "Instrument", v: 1.7, m: 3, r: "1.3 hrs rem." },
+                { l: "Cross-Country", v: 5.8, m: 5, r: "Met", ok: true },
+                { l: "Dual Inst.", v: 8.6, m: 20, r: "11.4 hrs rem." },
+              ].map(g => (
+                <div key={g.l} className="bg-white/5 p-5 rounded-3xl border border-white/5 text-center group hover:border-blue-500/30 transition-all">
+                  <p className="text-[9px] font-black text-slate-500 uppercase mb-3">{g.l}</p>
+                  <div className="text-2xl font-black text-white italic">{g.v}<span className="text-[10px] text-slate-600 ml-1">/{g.m}</span></div>
+                  <div className="mt-3 h-1 w-full bg-slate-900 rounded-full"><div className={`h-full ${g.ok ? 'bg-emerald-500' : 'bg-blue-600'} rounded-full`} style={{ width: `${(g.v / g.m) * 100}%` }} /></div>
+                  <p className={`text-[8px] font-bold mt-3 uppercase ${g.ok ? 'text-emerald-500' : 'text-slate-500'}`}>{g.r}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* ACTION REQUIRED & COMPLETED */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <Card className="border-t-4 border-t-rose-500">
+                <h3 className="font-black text-xl text-white uppercase italic tracking-tighter mb-6">{t.compliance}</h3>
+                <div className="space-y-4">
+                  {[
+                    { l: "Solo Flight Time", n: "1.5 hrs needed", p: "8.5 / 10h" },
+                    { l: "Night Flying", n: "4.0 hrs needed", p: "1.0 / 5h" },
+                    { l: "Cross-Country (Solo)", n: "1.5 hrs needed", p: "3.5 / 5h" },
+                    { l: "Instrument Training", n: "1.3 hrs needed", p: "1.7 / 3h" },
+                  ].map(a => (
+                    <div key={a.l} className="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/5">
+                      <div><p className="text-sm font-black text-white uppercase italic">{a.l}</p><p className="text-[10px] text-rose-400 font-bold uppercase mt-1 italic">{a.n}</p></div>
+                      <p className="font-black text-slate-500">{a.p}</p>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              <Card className="border-t-4 border-t-emerald-500">
+                <h3 className="font-black text-xl text-white uppercase italic tracking-tighter mb-6">Completed Requirements</h3>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center bg-emerald-500/5 p-4 rounded-xl border border-emerald-500/10">
+                    <div><p className="text-sm font-black text-white uppercase italic">{t.totalHours}</p><p className="text-[10px] text-emerald-500 font-black uppercase mt-1">45.0 / 40h</p></div>
+                    <Badge color="green">Complete</Badge>
+                  </div>
+                  <div className="flex justify-between items-center bg-emerald-500/5 p-4 rounded-xl border border-emerald-500/10">
+                    <div><p className="text-sm font-black text-white uppercase italic">Dual Instruction</p><p className="text-[10px] text-emerald-500 font-black uppercase mt-1">25.3 / 20h</p></div>
+                    <Badge color="green">Complete</Badge>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </div>
+        )}
+
+        {/* VIEW: COMPLIANCE (KCAA Audit) */}
+        {view === 'compliance' && (
+          <Card>
+            <h3 className="text-2xl font-black text-white uppercase italic mb-8">KCAA Official Audit Status</h3>
+            <div className="grid gap-6">
+              {[
+                { label: "PPL Training Syllabus (Phase 1-4)", progress: 65, status: "Ongoing" },
+                { label: "Night Flight Rating Requirement", progress: 20, status: "Underway" },
+                { label: "Cross-Country Proficiency (150nm Solo)", progress: 100, status: "Verified" },
+                { label: "Instrument Awareness Training", progress: 56, status: "Ongoing" },
+                { label: "Radio Operations Certificate", progress: 100, status: "Licensed" },
+                { label: "Class 2 Medical Certification", progress: 100, status: "Valid until 2027" }
+              ].map(item => (
+                <div key={item.label} className="flex items-center justify-between bg-white/5 p-5 rounded-2xl border border-white/5">
+                  <div className="w-2/3">
+                    <div className="flex items-center gap-3 mb-2">
+                      <p className="font-black text-white uppercase italic tracking-tighter">{item.label}</p>
+                      <Badge color={item.progress === 100 ? "green" : "blue"}>{item.status}</Badge>
+                    </div>
+                    <Progress val={item.progress} max={100} />
+                  </div>
+                  <div className="text-2xl font-black text-white italic">{item.progress}%</div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {/* VIEW: GROUND SCHOOL MATRIX */}
+        {view === 'ground' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <Card className="md:col-span-2">
+              <h3 className="text-2xl font-black text-white uppercase italic mb-8">Syllabus Completion Matrix</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {groundSchoolModules.map(m => (
+                  <div key={m.name} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5 group hover:bg-blue-600/10 transition-all">
+                    <p className="text-xs font-black text-slate-300 uppercase italic tracking-tighter">{m.name}</p>
+                    <div className="text-right">
+                      {m.score > 0 ? (
+                        <span className="text-lg font-black text-emerald-400">{m.score}%</span>
+                      ) : (
+                        <span className="text-[10px] font-black text-slate-600 uppercase italic">Pending</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </Card>
-          )}
-        </main>
-      </div>
+          </div>
+        )}
+
+        {/* VIEW: TECHNICAL LOGBOOK (WITH TOTAL) */}
+        {view === 'hours' && (
+          <Card>
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
+              <h3 className="text-2xl font-black text-white uppercase italic underline underline-offset-8 decoration-blue-500">Certified Technical Log</h3>
+              <Button onClick={() => downloadLogbookCsv(profile, dbRows)} className="bg-emerald-500 hover:bg-emerald-600">
+                <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                  <path fillRule="evenodd" d="M3 4.5A1.5 1.5 0 014.5 3h11A1.5 1.5 0 0117 4.5v11a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 013 15.5v-11zm4 2.5a.75.75 0 01.75-.75h.5a.75.75 0 01.75.75V11h1.25a.75.75 0 010 1.5H8.5V8.5z" clipRule="evenodd" />
+                </svg>
+                Export Logbook CSV
+              </Button>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left">
+                <thead>
+                  <tr className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/10">
+                    <th className="pb-6">Date</th><th className="pb-6">Aircraft</th><th className="pb-6">Reg</th><th className="pb-6">Instructor</th><th className="pb-6">Night</th><th className="pb-6 text-right">Block Time</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5 font-mono text-sm">
+                  {flights.map((f, i) => (
+                    <tr key={i} className="hover:bg-blue-500/5 transition-colors">
+                      <td className="py-6 font-black text-white italic">{f.date}</td>
+                      <td className="py-6 text-slate-400">{f.type}</td>
+                      <td className="py-6"><Badge>{f.reg}</Badge></td>
+                      <td className="py-6 text-slate-500 italic">{f.inst}</td>
+                      <td className="py-6 text-indigo-400 font-bold">{f.night}h</td>
+                      <td className="py-6 text-right font-black text-blue-500 text-lg italic">{f.dur}h</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr className="bg-blue-600/10 border-t-2 border-blue-500">
+                    <td colSpan={5} className="py-8 pl-8 text-2xl font-black text-white uppercase italic tracking-tighter">Grand Total Flight Hours</td>
+                    <td className="py-8 pr-8 text-right text-4xl font-black text-blue-500 italic underline decoration-white/20">{totalHrs.toFixed(1)}h</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </Card>
+        )}
+      </main>
     </div>
   )
 }
