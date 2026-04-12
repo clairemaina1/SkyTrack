@@ -393,7 +393,7 @@ export default function SkyTrackApex() {
   };
 
   const loadFlightRows = async () => {
-    if (!session || !profile) return;
+    //if (!session || !profile) return;
 
     try {
       const response = await fetch('/api/flights', {
