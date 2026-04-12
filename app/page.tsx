@@ -187,30 +187,30 @@ const downloadLogbookCsv = (profile: any, rows: any[]) => {
   URL.revokeObjectURL(url);
 };
 
-const generateAssistantReply = (input: string, now: Date, weather: any, nextFlight: any, safeWindow: Date) => {
+const generateAssistantReply = (input: string, now: Date, weather: any, nextFlight: any, safeWindow: Date, lang: 'en' | 'fr' = 'en', t: any = translations.en) => {
   const normalized = input.trim().toLowerCase();
   const safetyMessage = weather.isSafeForSolo
-    ? 'Conditions are within safe student solo limits right now.'
-    : `Current weather is not safe for a student because ${weather.reason.toLowerCase()}`;
-  const windowMessage = `The next predicted safe window is ${safeWindow.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}, which is ${formatRelativeTime(safeWindow, now)}.`;
+    ? t.safeForSolo
+    : `${t.notSafeForSolo} ${weather.reason.toLowerCase()}`;
+  const windowMessage = `${t.nextSafeWindow} ${safeWindow.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}, ${lang === 'en' ? 'which is' : 'qui est'} ${formatRelativeTime(safeWindow, now)}.`;
 
-  if (normalized.includes('safe') || normalized.includes('student') || normalized.includes('fly')) {
+  if (normalized.includes('safe') || normalized.includes('student') || normalized.includes('fly') || normalized.includes('sécurité') || normalized.includes('étudiant') || normalized.includes('voler')) {
     return `${safetyMessage} ${windowMessage}`;
   }
 
-  if (normalized.includes('weather') || normalized.includes('metar') || normalized.includes('hknw')) {
-    return `Current METAR-style weather: ${weather.condition}, ${weather.wind}, gusts ${weather.gusts}KT, visibility ${weather.visibility}, temperature ${weather.temp}°C.`;
+  if (normalized.includes('weather') || normalized.includes('metar') || normalized.includes('hknw') || normalized.includes('météo')) {
+    return `${t.currentMETAR} ${weather.condition}, ${weather.wind}, gusts ${weather.gusts}KT, visibility ${weather.visibility}, temperature ${weather.temp}°C.`;
   }
 
-  if (normalized.includes('next') || normalized.includes('schedule') || normalized.includes('slot')) {
-    return `Next scheduled slot is ${nextFlight.label} at ${nextFlight.time} for ${nextFlight.type}. ${windowMessage}`;
+  if (normalized.includes('next') || normalized.includes('schedule') || normalized.includes('slot') || normalized.includes('prochain') || normalized.includes('horaire')) {
+    return `${t.nextScheduledSlot} ${nextFlight.label} ${lang === 'en' ? 'at' : 'à'} ${nextFlight.time} ${lang === 'en' ? 'for' : 'pour'} ${nextFlight.type}. ${windowMessage}`;
   }
 
-  if (normalized.includes('why')) {
-    return `Reason: ${weather.reason}. ${windowMessage}`;
+  if (normalized.includes('why') || normalized.includes('pourquoi')) {
+    return `${lang === 'en' ? 'Reason' : 'Raison'}: ${weather.reason}. ${windowMessage}`;
   }
 
-  return `SkyTrack recommends: ${safetyMessage} ${nextFlight.label} is the next training slot at ${nextFlight.time}.`;
+  return `${t.skytrackRecommends} ${safetyMessage} ${nextFlight.label} is the next training slot at ${nextFlight.time}.`;
 };
 
 // =============================================================================
@@ -341,28 +341,29 @@ export default function SkyTrackApex() {
           nextFlight,
           safeWindow: safeWindow.toISOString(),
           currentTime: currentTime.toISOString(),
+          lang,
         }),
       });
 
       const payload = await response.json();
-      const aiReply = payload.reply ?? generateAssistantReply(prompt, currentTime, weather, nextFlight, safeWindow);
+      const aiReply = payload.reply ?? generateAssistantReply(prompt, currentTime, weather, nextFlight, safeWindow, lang, t);
 
       if (!response.ok) {
         setAssistantMessages((prev) => [
           ...prev,
           {
             role: 'assistant',
-            content: `AI assistant unavailable. ${payload.error || 'Using fallback response.'}\n\n${aiReply}`,
+            content: `${t.aiUnavailable} ${payload.error || t.usingSideEffects}\n\n${aiReply}`,
           },
         ]);
       } else {
         setAssistantMessages((prev) => [...prev, { role: 'assistant', content: aiReply }]);
       }
     } catch (error: any) {
-      const fallback = generateAssistantReply(prompt, currentTime, weather, nextFlight, safeWindow);
+      const fallback = generateAssistantReply(prompt, currentTime, weather, nextFlight, safeWindow, lang, t);
       setAssistantMessages((prev) => [
         ...prev,
-        { role: 'assistant', content: `AI request failed. Using fallback response.\n\n${fallback}` },
+        { role: 'assistant', content: `${t.requestFailed}\n\n${fallback}` },
       ]);
     } finally {
       setIsAssistantTyping(false);
@@ -672,8 +673,8 @@ export default function SkyTrackApex() {
       </aside>
 
       {/* CONTENT */}
-      <main className="flex-1 p-12 overflow-auto">
-        <header className="flex justify-between items-end mb-12">
+      <main className="flex-1 overflow-auto">
+        <header className="flex justify-between items-end px-12 pt-12 pb-8">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <Badge color="green">{selectedAirportLabel} Ops ({selectedAirport})</Badge>
@@ -806,7 +807,7 @@ export default function SkyTrackApex() {
 
         {/* VIEW: DASHBOARD (Includes Live Dispatch & Weather) */}
         {view === 'dashboard' && (
-          <div className="space-y-8">
+          <div className="space-y-8 px-12 pb-12">
             {/* DISPATCH CENTER */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <Card className={`border-l-8 ${weather.isSafeForSolo ? 'border-emerald-500' : 'border-rose-500'} bg-black/80`}>
@@ -845,7 +846,7 @@ export default function SkyTrackApex() {
                       <p className={`mt-1 text-[9px] ${flightMessage.type === 'error' ? 'text-rose-400' : 'text-emerald-400'}`}>{flightMessage.text}</p>
                     )}
                   </div>
-                  <Badge color={dbRows.length > 0 ? 'green' : 'amber'}>{dbRows.length > 0 ? 'Connected' : 'No Data'}</Badge>
+                  <Badge color={dbRows.length > 0 ? 'green' : 'amber'}>{dbRows.length > 0 ? 'Connected' : t.noData}</Badge>
                 </div>
 
                 {dbRows.length > 0 ? (
@@ -875,7 +876,7 @@ export default function SkyTrackApex() {
                   </div>
                 ) : (
                   <div className="rounded-3xl border border-dashed border-white/10 bg-white/5 p-9 text-center">
-                    <p className="text-[10px] text-slate-400 uppercase tracking-widest">No Supabase rows loaded yet (or table is empty).</p>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-widest">{t.noSupabaseFlights}</p>
                   </div>
                 )}
               </Card>
@@ -933,8 +934,8 @@ export default function SkyTrackApex() {
               <Card className="md:col-span-2 bg-slate-950/90 border border-white/10 p-6">
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">SkyTrack Assistant</h3>
-                    <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Smart aviation chatbot for safety, schedule, and weather questions</p>
+                    <h3 className="text-xs font-black text-slate-500 uppercase tracking-widest">{t.assistantName}</h3>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-widest mt-1">{t.assistantDescription}</p>
                   </div>
                   <Badge color="blue">AI</Badge>
                 </div>
@@ -948,7 +949,7 @@ export default function SkyTrackApex() {
                   {isAssistantTyping && (
                     <div className="rounded-3xl p-4 bg-blue-500/10 border border-blue-500/10">
                       <p className="text-[10px] uppercase tracking-widest text-slate-400 mb-2">SkyTrack</p>
-                      <p className="text-sm text-slate-200">Thinking...</p>
+                      <p className="text-sm text-slate-200">{t.assistantThinking}</p>
                     </div>
                   )}
                 </div>
@@ -957,7 +958,7 @@ export default function SkyTrackApex() {
                     value={assistantInput}
                     onChange={(event) => setAssistantInput(event.target.value)}
                     onKeyDown={(event) => event.key === 'Enter' && handleAssistantSubmit()}
-                    placeholder="Ask about safety, weather or the next flight"
+                    placeholder={t.assistantPlaceholder}
                     className="flex-1 rounded-2xl border border-white/10 bg-slate-900/80 px-4 py-3 text-sm text-white outline-none focus:border-blue-500/70"
                   />
                   <button
@@ -965,7 +966,7 @@ export default function SkyTrackApex() {
                     className="rounded-2xl bg-blue-600 px-5 py-3 text-[10px] uppercase tracking-widest font-black text-white hover:bg-blue-700"
                     onClick={handleAssistantSubmit}
                   >
-                    Send
+                    {t.sendButton}
                   </button>
                 </div>
               </Card>
@@ -1054,7 +1055,8 @@ export default function SkyTrackApex() {
 
         {/* VIEW: COMPLIANCE (KCAA Audit) */}
         {view === 'compliance' && (
-          <Card>
+          <div className="px-12 pb-12">
+            <Card>
             <h3 className="text-2xl font-black text-white uppercase italic mb-8">KCAA Official Audit Status</h3>
             <div className="grid gap-6">
               {[
@@ -1077,12 +1079,13 @@ export default function SkyTrackApex() {
                 </div>
               ))}
             </div>
-          </Card>
+            </Card>
+          </div>
         )}
 
         {/* VIEW: GROUND SCHOOL MATRIX */}
         {view === 'ground' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-12 pb-12">
             <Card className="md:col-span-2">
               <h3 className="text-2xl font-black text-white uppercase italic mb-8">Syllabus Completion Matrix</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1105,7 +1108,8 @@ export default function SkyTrackApex() {
 
         {/* VIEW: TECHNICAL LOGBOOK (WITH TOTAL) */}
         {view === 'hours' && (
-          <Card>
+          <div className="px-12 pb-12">
+            <Card>
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
               <h3 className="text-2xl font-black text-white uppercase italic underline underline-offset-8 decoration-blue-500">Certified Technical Log</h3>
               <Button onClick={() => downloadLogbookCsv(profile, dbRows)} className="bg-emerald-500 hover:bg-emerald-600">
@@ -1142,7 +1146,8 @@ export default function SkyTrackApex() {
                 </tfoot>
               </table>
             </div>
-          </Card>
+            </Card>
+          </div>
         )}
       </main>
     </div>
