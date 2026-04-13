@@ -34,11 +34,16 @@ const Progress = ({ val, max, color = "bg-blue-600" }: any) => (
 );
 
 const AIRPORTS = [
-  { code: 'HKNW', label: 'Wilson' },
-  { code: 'HKJK', label: 'JKIA' },
-  { code: 'HKMO', label: 'Moi' },
-  { code: 'HKKI', label: 'Kisumu' },
-  { code: 'HKEL', label: 'Eldoret' },
+  { code: 'HKNW', label: 'Wilson', country: 'Kenya', lang: 'en' },
+  { code: 'HKJK', label: 'JKIA', country: 'Kenya', lang: 'en' },
+  { code: 'GOOY', label: 'Dakar', country: 'Senegal', lang: 'fr' },
+  { code: 'FKKD', label: 'Douala', country: 'Cameroon', lang: 'fr' },
+  { code: 'DIAP', label: 'Abidjan', country: 'Ivory Coast', lang: 'fr' },
+  { code: 'HUEN', label: 'Entebbe', country: 'Uganda', lang: 'en' },
+  { code: 'HRYR', label: 'Kigali', country: 'Rwanda', lang: 'fr' },
+  { code: 'DGAA', label: 'Accra', country: 'Ghana', lang: 'en' },
+  { code: 'HECA', label: 'Cairo', country: 'Egypt', lang: 'en' },
+  { code: 'GMMN', label: 'Casablanca', country: 'Morocco', lang: 'fr' },
 ];
 
 const weatherPresets = [
@@ -783,7 +788,7 @@ export default function SkyTrackApex() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <Badge color="green">{selectedAirportLabel} {t.airportOps} ({selectedAirport})</Badge>
-              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{currentDateLabel} • {currentTimeLabel} EAT</div>
+              <div className="text-[10px] font-black text-slate-200 uppercase tracking-widest">{currentDateLabel} • {currentTimeLabel} EAT</div>
             </div>
             <h1 className="text-6xl font-black text-white tracking-tighter uppercase italic drop-shadow-2xl">
               {view === 'dashboard' && t.commandDeck}
@@ -792,14 +797,21 @@ export default function SkyTrackApex() {
               {view === 'compliance' && t.kcaaAuditStatus}
             </h1>
 
-            <div className="mt-3 text-slate-400 text-sm uppercase tracking-widest">
+            <div className="mt-3 text-slate-200 text-sm uppercase tracking-widest">
               <div>{t.localTime}: {formatDigitalTime(currentTime)}</div>
-              <div className="mt-1 text-[10px] text-slate-500">{t.nextFlightCountdown}: {countdown}</div>
+              <div className="mt-1 text-[10px] text-slate-200">{t.nextFlightCountdown}: {countdown}</div>
               <div className="mt-3 flex flex-wrap gap-3 items-center">
-                <label className="text-[10px] uppercase tracking-widest text-slate-500">{t.airportLabel}</label>
+                <label className="text-[10px] uppercase tracking-widest text-slate-100">{t.airportLabel}</label>
                 <select
                   value={selectedAirport}
-                  onChange={(event) => setSelectedAirport(event.target.value)}
+                  onChange={(event) => {
+                    const selectedCode = event.target.value;
+                    const airport = AIRPORTS.find((airport) => airport.code === selectedCode);
+                    setSelectedAirport(selectedCode);
+                    if (airport) {
+                      setLang(airport.lang as 'en' | 'fr');
+                    }
+                  }}
                   className="rounded-2xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white outline-none"
                 >
                   {AIRPORTS.map((airport) => (
