@@ -7,14 +7,15 @@ import {
   Plus, Plane, Clock, GraduationCap, LayoutDashboard, FileCheck,
   CheckCircle2, Wind, Fuel, Zap, Target, AlertCircle, Calendar,
   MapPin, BarChart3, ChevronRight, Award, BookOpen, ShieldCheck,
-  CloudSun, Thermometer, Navigation, Eye, UserCheck, XCircle
+  CloudSun, Thermometer, Navigation, Eye, UserCheck, XCircle,
+  Sun, Moon, Users, User
 } from 'lucide-react'
 
 // =============================================================================
 // UI ATOMS
 // =============================================================================
 const Button = ({ children, className, type = 'button', disabled, ...props }: any) => <button type={type} disabled={disabled} className={`relative z-50 pointer-events-auto px-5 py-2.5 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/20 transition-all font-black flex items-center gap-2 uppercase tracking-tighter ${disabled ? 'opacity-40 cursor-not-allowed bg-blue-500' : 'hover:bg-blue-700 active:scale-95'} ${className}`} {...props}>{children}</button>;
-const Card = ({ children, className }: any) => <div className={`border border-white/10 rounded-2xl p-6 bg-slate-950/95 shadow-2xl relative z-10 overflow-hidden ${className}`}>{children}</div>;
+const Card = ({ children, className }: any) => <div className={`border border-white/10 rounded-2xl p-6 bg-slate-950/90 backdrop-blur-xl shadow-2xl relative z-10 overflow-hidden ${className}`}>{children}</div>;
 const Badge = ({ children, color = "blue" }: any) => {
   const colors: any = {
     blue: "bg-blue-500/20 text-blue-400 border-blue-500/30",
@@ -608,10 +609,37 @@ export default function SkyTrackApex() {
     'Principles of Flight': t.principlesOfFlight,
   };
 
-  const groundSchoolModules = kcaaModules.map((module) => ({
-    ...module,
-    name: groundSchoolModuleLabels[module.name] ?? module.name,
-  }));
+  const groundSchoolModules = kcaaModules.map((module) => {
+    const moduleName = groundSchoolModuleLabels[module.name] ?? module.name;
+    const score = module.score ?? 0;
+    const status = score >= 100 ? t.statusCompleted : score >= 75 ? t.statusExamReady : t.statusInProgress;
+    const badgeColor = score >= 100 ? 'green' : score >= 75 ? 'blue' : 'amber';
+    const coreTheoryModules = [
+      'Air Law / Aviation Regulations', 'Meteorology', 'General Navigation',
+      'Human Performance and Limitations', 'Principles of Flight'
+    ];
+    const category = coreTheoryModules.includes(module.name) ? 'coreTheory' : 'technicalKnowledge';
+
+    return {
+      ...module,
+      name: moduleName,
+      score,
+      status,
+      badgeColor,
+      category,
+    };
+  });
+
+  const groundSchoolCategories = [
+    {
+      title: t.coreTheory,
+      modules: groundSchoolModules.filter((m) => m.category === 'coreTheory'),
+    },
+    {
+      title: t.technicalKnowledge,
+      modules: groundSchoolModules.filter((m) => m.category === 'technicalKnowledge'),
+    },
+  ];
 
   const flights = [
     { date: '2026-04-10', type: 'Cessna 172', reg: '5Y-KQA', inst: 'Capt. Sarah Mitchell', dur: 1.5, night: 0, instr: 0.5, xc: 0 },
@@ -1150,49 +1178,74 @@ export default function SkyTrackApex() {
 
         {/* VIEW: COMPLIANCE (KCAA Audit) */}
         {view === 'compliance' && (
-          <div className="px-12 pb-12">
+          <div className="px-12 pb-10">
             <Card>
-            <h3 className="text-2xl font-black text-white uppercase italic mb-8">{t.complianceAuditStatus}</h3>
-            <div className="grid gap-6">
-              {[
-                { label: t.pplTrainingSyllabus, progress: 65, status: t.statusOngoing },
-                { label: t.nightFlightRatingRequirement, progress: 20, status: t.statusUnderway },
-                { label: t.crossCountryProficiency, progress: 100, status: t.statusVerified },
-                { label: t.instrumentAwarenessTraining, progress: 56, status: t.statusOngoing },
-                { label: t.radioOperationsCertificate, progress: 100, status: t.statusLicensed },
-                { label: t.class2MedicalCertification, progress: 100, status: t.statusValidUntil.replace('{year}', '2027') }
-              ].map(item => (
-                <div key={item.label} className="flex items-center justify-between bg-white/5 p-5 rounded-2xl border border-white/5">
-                  <div className="w-2/3">
-                    <div className="flex items-center gap-3 mb-2">
-                      <p className="font-black text-white uppercase italic tracking-tighter">{item.label}</p>
-                      <Badge color={item.progress === 100 ? "green" : "blue"}>{item.status}</Badge>
-                    </div>
-                    <Progress val={item.progress} max={100} />
-                  </div>
-                  <div className="text-2xl font-black text-white italic">{item.progress}%</div>
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <div>
+                  <h3 className="text-2xl font-black text-white uppercase italic">{t.complianceAuditStatus}</h3>
+                  <p className="mt-2 text-sm text-slate-400 uppercase tracking-widest">{t.auditReadyOverview}</p>
                 </div>
-              ))}
-            </div>
+                <Badge color="blue">{t.auditSummary}</Badge>
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {[
+                  { label: t.pplTrainingSyllabus, progress: 65, status: t.statusOngoing },
+                  { label: t.nightFlightRatingRequirement, progress: 20, status: t.statusUnderway },
+                  { label: t.crossCountryProficiency, progress: 100, status: t.statusVerified },
+                  { label: t.instrumentAwarenessTraining, progress: 56, status: t.statusOngoing },
+                  { label: t.radioOperationsCertificate, progress: 100, status: t.statusLicensed },
+                  { label: t.class2MedicalCertification, progress: 100, status: t.statusValidUntil.replace('{year}', '2027') }
+                ].map(item => (
+                  <div key={item.label} className="rounded-3xl border border-white/10 bg-slate-950/80 p-6">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-widest text-slate-500">{item.label}</p>
+                        <p className="mt-3 text-lg font-black text-white uppercase">{item.status}</p>
+                      </div>
+                      <Badge color={item.progress === 100 ? 'green' : item.progress >= 70 ? 'blue' : 'amber'}>{item.progress === 100 ? t.statusVerified : item.progress >= 70 ? t.statusLicensed : t.statusOngoing}</Badge>
+                    </div>
+                    <div className="mt-5 h-3 rounded-full bg-slate-800 overflow-hidden">
+                      <div className="h-full rounded-full bg-gradient-to-r from-sky-500 via-cyan-400 to-emerald-400" style={{ width: `${item.progress}%` }} />
+                    </div>
+                    <p className="mt-3 text-[10px] uppercase tracking-widest text-slate-400">{item.progress}% {t.complete}</p>
+                  </div>
+                ))}
+              </div>
             </Card>
           </div>
         )}
 
         {/* VIEW: GROUND SCHOOL MATRIX */}
         {view === 'ground' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-12 pb-12">
+          <div className="grid grid-cols-1 gap-6 px-12 pb-10">
             <Card className="md:col-span-2">
-              <h3 className="text-2xl font-black text-white uppercase italic mb-8">{t.syllabusCompletionMatrix}</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {groundSchoolModules.map(m => (
-                  <div key={m.name} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5 group hover:bg-blue-600/10 transition-all">
-                    <p className="text-xs font-black text-slate-300 uppercase italic tracking-tighter">{m.name}</p>
-                    <div className="text-right">
-                      {m.score > 0 ? (
-                        <span className="text-lg font-black text-emerald-400">{m.score}%</span>
-                      ) : (
-                        <span className="text-[10px] font-black text-slate-600 uppercase italic">{t.pending}</span>
-                      )}
+              <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <div>
+                  <h3 className="text-2xl font-black text-white uppercase italic">{t.syllabusCompletionMatrix}</h3>
+                  <p className="mt-2 text-sm text-slate-400 uppercase tracking-widest">{t.groundMatrixOverview}</p>
+                </div>
+                <Badge color="green">{t.trainingReady}</Badge>
+              </div>
+              <div className="space-y-6">
+                {groundSchoolCategories.map((category) => (
+                  <div key={category.title} className="rounded-3xl border border-white/10 bg-slate-950/80 p-5">
+                    <h4 className="text-sm font-black text-white uppercase tracking-widest mb-4">{category.title}</h4>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {category.modules.map((m) => (
+                        <div key={m.name} className="rounded-3xl border border-white/10 bg-slate-900/80 p-4 shadow-inner shadow-slate-950/20">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-black text-white">{m.name}</p>
+                              <p className="mt-2 text-[10px] uppercase tracking-[0.28em] text-slate-400">{m.status}</p>
+                            </div>
+                            <Badge color={m.badgeColor}>{m.status}</Badge>
+                          </div>
+                          <div className="mt-4 h-3 rounded-full bg-slate-800 overflow-hidden">
+                            <div className="h-full rounded-full bg-gradient-to-r from-blue-500 via-cyan-400 to-emerald-400" style={{ width: `${m.score}%` }} />
+                          </div>
+                          <p className="mt-3 text-[10px] uppercase tracking-widest text-slate-400">{m.score}%</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 ))}
@@ -1203,44 +1256,63 @@ export default function SkyTrackApex() {
 
         {/* VIEW: TECHNICAL LOGBOOK (WITH TOTAL) */}
         {view === 'hours' && (
-          <div className="px-12 pb-12">
+          <div className="px-12 pb-10">
             <Card>
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
-              <h3 className="text-2xl font-black text-white uppercase italic underline underline-offset-8 decoration-blue-500">{t.certifiedTechnicalLog}</h3>
-              <Button onClick={() => downloadLogbookCsv(profile, dbRows, t)} className="bg-emerald-500 hover:bg-emerald-600">
-                <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
-                  <path fillRule="evenodd" d="M3 4.5A1.5 1.5 0 014.5 3h11A1.5 1.5 0 0117 4.5v11a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 013 15.5v-11zm4 2.5a.75.75 0 01.75-.75h.5a.75.75 0 01.75.75V11h1.25a.75.75 0 010 1.5H8.5V8.5z" clipRule="evenodd" />
-                </svg>
-                {t.exportLogbookCsv}
-              </Button>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/10">
-                    <th className="pb-6">{t.flightDateLabel}</th><th className="pb-6">{t.aircraftLabel}</th><th className="pb-6">{t.registrationLabel}</th><th className="pb-6">{t.instructorLabel}</th><th className="pb-6">{t.nightLabel}</th><th className="pb-6 text-right">{t.blockTimeLabel}</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5 font-mono text-sm">
-                  {flights.map((f, i) => (
-                    <tr key={i} className="hover:bg-blue-500/5 transition-colors">
-                      <td className="py-6 font-black text-white italic">{f.date}</td>
-                      <td className="py-6 text-slate-400">{f.type}</td>
-                      <td className="py-6"><Badge>{f.reg}</Badge></td>
-                      <td className="py-6 text-slate-500 italic">{f.inst}</td>
-                      <td className="py-6 text-indigo-400 font-bold">{f.night}h</td>
-                      <td className="py-6 text-right font-black text-blue-500 text-lg italic">{f.dur}h</td>
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+                <h3 className="text-2xl font-black text-white uppercase italic underline underline-offset-8 decoration-blue-500">{t.certifiedTechnicalLog}</h3>
+                <Button onClick={() => downloadLogbookCsv(profile, dbRows, t)} className="bg-emerald-500 hover:bg-emerald-600">
+                  <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+                    <path fillRule="evenodd" d="M3 4.5A1.5 1.5 0 014.5 3h11A1.5 1.5 0 0117 4.5v11a1.5 1.5 0 01-1.5 1.5h-11A1.5 1.5 0 013 15.5v-11zm4 2.5a.75.75 0 01.75-.75h.5a.75.75 0 01.75.75V11h1.25a.75.75 0 010 1.5H8.5V8.5z" clipRule="evenodd" />
+                  </svg>
+                  {t.exportLogbookCsv}
+                </Button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-white/10">
+                      <th className="pb-5">{t.flightDateLabel}</th>
+                      <th className="pb-5">{t.aircraftLabel}</th>
+                      <th className="pb-5">{t.registrationLabel}</th>
+                      <th className="pb-5">{t.instructorLabel}</th>
+                      <th className="pb-5">{t.dayNightLabel}</th>
+                      <th className="pb-5">{t.dualSoloLabel}</th>
+                      <th className="pb-5 text-right">{t.blockTimeLabel}</th>
+                      <th className="pb-5">{t.verificationStatus}</th>
                     </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr className="bg-blue-600/10 border-t-2 border-blue-500">
-                    <td colSpan={5} className="py-8 pl-8 text-2xl font-black text-white uppercase italic tracking-tighter">{t.grandTotalFlightHours}</td>
-                    <td className="py-8 pr-8 text-right text-4xl font-black text-blue-500 italic underline decoration-white/20">{totalHrs.toFixed(1)}h</td>
-                  </tr>
-                </tfoot>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-white/5 text-sm">
+                    {flights.map((f, i) => (
+                      <tr key={i} className="hover:bg-blue-500/5 transition-colors">
+                        <td className="py-5 font-black text-white italic">{f.date}</td>
+                        <td className="py-5 text-slate-300">{f.type}</td>
+                        <td className="py-5"><Badge>{f.reg}</Badge></td>
+                        <td className="py-5 text-slate-400 italic">{f.inst}</td>
+                        <td className="py-5 text-slate-100">
+                          <span className="inline-flex items-center gap-2 rounded-full bg-slate-800/80 px-3 py-2 text-[10px] uppercase tracking-widest text-slate-100">
+                            {f.night ? <Moon className="w-3.5 h-3.5" /> : <Sun className="w-3.5 h-3.5" />}
+                            {f.night ? t.nightFlight : t.dayFlight}
+                          </span>
+                        </td>
+                        <td className="py-5 text-slate-100">
+                          <span className="inline-flex items-center gap-2 rounded-full bg-slate-800/80 px-3 py-2 text-[10px] uppercase tracking-widest text-slate-100">
+                            {f.instr ? <Users className="w-3.5 h-3.5" /> : <User className="w-3.5 h-3.5" />}
+                            {f.instr ? t.dualFlight : t.soloFlight}
+                          </span>
+                        </td>
+                        <td className="py-5 text-right font-black text-blue-400 text-lg italic">{f.dur}h</td>
+                        <td className="py-5 text-center text-emerald-400"><CheckCircle2 className="w-5 h-5" /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-blue-600/10 border-t-2 border-blue-500">
+                      <td colSpan={7} className="py-6 pl-8 text-2xl font-black text-white uppercase italic tracking-tighter">{t.grandTotalFlightHours}</td>
+                      <td className="py-6 pr-8 text-right text-4xl font-black font-mono text-blue-500 italic underline decoration-white/20">{totalHrs.toFixed(1)}h</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
             </Card>
           </div>
         )}
