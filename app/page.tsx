@@ -33,18 +33,12 @@ const Progress = ({ val, max, color = "bg-blue-600" }: any) => (
   </div>
 );
 
-const africanAirports = [
-  { code: 'HKNW', name: 'Wilson', country: 'Kenya', lang: 'en' },
-  { code: 'HKJK', name: 'JKIA', country: 'Kenya', lang: 'en' },
-  { code: 'GOOY', name: 'Dakar Blaise Diagne', country: 'Senegal', lang: 'fr' },
-  { code: 'FKKD', name: 'Douala International', country: 'Cameroon', lang: 'fr' },
-  { code: 'DIAP', name: 'Abidjan Houphouët-Boigny', country: 'Ivory Coast', lang: 'fr' },
-  { code: 'HUEN', name: 'Entebbe International', country: 'Uganda', lang: 'en' },
-  { code: 'HRYR', name: 'Kigali International', country: 'Rwanda', lang: 'fr' },
-  { code: 'DGAA', name: 'Kotoka Accra', country: 'Ghana', lang: 'en' },
-  { code: 'FACT', name: 'Cape Town International', country: 'South Africa', lang: 'en' },
-  { code: 'HAAB', name: 'Addis Ababa Bole', country: 'Ethiopia', lang: 'en' },
-  { code: 'DAAG', name: 'Algiers Houari Boumediene', country: 'Algeria', lang: 'fr' },
+const airports = [
+  { code: 'HKNW', name: 'Wilson', lang: 'en' },
+  { code: 'GOOY', name: 'Dakar', lang: 'fr' },
+  { code: 'FKKD', name: 'Douala', lang: 'fr' },
+  { code: 'HUEN', name: 'Entebbe', lang: 'en' },
+  { code: 'HRYR', name: 'Kigali', lang: 'fr' },
 ];
 
 const weatherPresets = [
@@ -263,6 +257,8 @@ const generateAssistantReply = (input: string, now: Date, weather: any, nextFlig
 // =============================================================================
 export default function SkyTrackApex() {
   const [lang, setLang] = useState<'en' | 'fr'>('en');
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const isDark = theme === 'dark';
   const t = translations[lang];
   const [session, setSession] = useState<any>(null);
   const [view, setView] = useState('dashboard');
@@ -333,7 +329,7 @@ export default function SkyTrackApex() {
   }, [lang]);
 
   const [selectedAirport, setSelectedAirport] = useState('HKNW');
-  const selectedAirportData = africanAirports.find((airport) => airport.code === selectedAirport);
+  const selectedAirportData = airports.find((airport) => airport.code === selectedAirport);
   const selectedAirportName = selectedAirportData?.name ?? selectedAirport;
   const currentDateLabel = currentTime.toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR', { month: 'long', day: 'numeric', year: 'numeric' });
   const currentTimeLabel = currentTime.toLocaleTimeString(lang === 'en' ? 'en-US' : 'fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -736,16 +732,22 @@ export default function SkyTrackApex() {
   }
 
   return (
-    <div className="relative min-h-screen bg-[#020408] text-slate-200 flex">
+    <div className={`relative min-h-screen ${isDark ? 'bg-[#020408] text-slate-200' : 'bg-slate-100 text-slate-950'} flex`}>
       <div className="fixed inset-0 z-0 bg-cover bg-center opacity-25 grayscale scale-110" style={{ backgroundImage: "url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop')" }} />
-      <div className="fixed inset-0 z-0 bg-gradient-to-tr from-black via-black/95 to-blue-950/20" />
+      <div className={`fixed inset-0 z-0 bg-gradient-to-tr ${isDark ? 'from-black via-black/95 to-blue-950/20' : 'from-white via-slate-100/80 to-slate-200/60'}`} />
 
-      <div className="fixed top-6 right-8 z-[100]">
+      <div className="fixed top-6 right-8 z-[100] flex items-center gap-3 flex items-center gap-3">
         <Button
           onClick={() => setLang(lang === 'en' ? 'fr' : 'en')}
           className="bg-blue-600/20 hover:bg-blue-600/40 backdrop-blur-md border border-blue-500/50 text-white px-4 py-2 rounded-xl shadow-lg transition-all"
         >
           {lang === 'en' ? '🇫🇷 Français' : '🇬🇧 English'}
+        </Button>
+        <Button
+          onClick={() => setTheme(isDark ? 'light' : 'dark')}
+          className={`backdrop-blur-md border rounded-xl shadow-lg transition-all px-4 py-2 ${isDark ? 'bg-slate-700/20 border-white/20 text-white hover:bg-slate-700/40' : 'bg-slate-100/90 border-slate-300/40 text-slate-950 hover:bg-slate-200/80'}`}
+        >
+          {isDark ? <Sun size={16} /> : <Moon size={16} />} {isDark ? 'Light' : 'Dark'}
         </Button>
       </div>        {/* SIDEBAR */}
       <aside className="w-72 bg-black/60 border-r border-white/5 flex flex-col h-screen sticky top-0 backdrop-blur-xl">
@@ -785,12 +787,12 @@ export default function SkyTrackApex() {
       </aside>
 
       {/* CONTENT */}
-      <main className="flex-1 overflow-auto">
-        <header className="flex justify-between items-end px-12 pt-6 pb-8">
+      <main className="flex-1 overflow-auto flex flex-col">
+        <header className="flex flex-col gap-6 md:flex-row justify-between items-end px-12 pt-6 pb-8">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <Badge color="green">{selectedAirportName} {t.airportOps} ({selectedAirport})</Badge>
-              <div className="text-[10px] font-black text-slate-100 uppercase tracking-widest">{currentDateLabel} • {currentTimeLabel} EAT</div>
+              <div className="text-[10px] font-black text-white uppercase tracking-widest">{currentDateLabel} • {currentTimeLabel} EAT</div>
             </div>
             <h1 className="text-6xl font-black text-white tracking-tighter uppercase italic drop-shadow-2xl">
               {view === 'dashboard' && t.commandDeck}
@@ -799,16 +801,16 @@ export default function SkyTrackApex() {
               {view === 'compliance' && t.kcaaAuditStatus}
             </h1>
 
-            <div className="mt-3 text-slate-100 text-sm font-medium uppercase tracking-widest">
+            <div className="mt-3 text-white text-sm font-medium uppercase tracking-widest">
               <div>{t.localTime}: {formatDigitalTime(currentTime)}</div>
-              <div className="mt-1 text-[10px] text-slate-100 font-medium">{t.nextFlightCountdown}: {countdown}</div>
+              <div className="mt-1 text-[10px] text-white font-medium">{t.nextFlightCountdown}: {countdown}</div>
               <div className="mt-3 flex flex-wrap gap-3 items-center">
-                <label className="text-[10px] uppercase tracking-widest text-slate-100 font-medium">{t.airportLabel}</label>
+                <label className="text-[10px] uppercase tracking-widest text-white font-medium">{t.airportLabel}</label>
                 <select
                   value={selectedAirport}
                   onChange={(event) => {
                     const selectedCode = event.target.value;
-                    const airport = africanAirports.find((airport) => airport.code === selectedCode);
+                    const airport = airports.find((airport) => airport.code === selectedCode);
                     setSelectedAirport(selectedCode);
                     if (airport) {
                       setLang(airport.lang as 'en' | 'fr');
@@ -816,7 +818,7 @@ export default function SkyTrackApex() {
                   }}
                   className="rounded-2xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white outline-none"
                 >
-                  {africanAirports.map((airport) => (
+                  {airports.map((airport) => (
                     <option key={airport.code} value={airport.code}>{airport.name}</option>
                   ))}
                 </select>
