@@ -13,8 +13,8 @@ import {
 // =============================================================================
 // UI ATOMS
 // =============================================================================
-const Button = ({ children, className, type = 'button', disabled, ...props }: any) => <button type={type} disabled={disabled} className={`px-5 py-2.5 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/20 transition-all font-black flex items-center gap-2 uppercase tracking-tighter ${disabled ? 'opacity-40 cursor-not-allowed bg-blue-500' : 'hover:bg-blue-700 active:scale-95'} ${className}`} {...props}>{children}</button>;
-const Card = ({ children, className }: any) => <div className={`border border-white/10 rounded-2xl p-6 bg-black/75 backdrop-blur-3xl shadow-2xl relative overflow-hidden ${className}`}>{children}</div>;
+const Button = ({ children, className, type = 'button', disabled, ...props }: any) => <button type={type} disabled={disabled} className={`relative z-50 pointer-events-auto px-5 py-2.5 bg-blue-600 text-white rounded-xl shadow-lg shadow-blue-500/20 transition-all font-black flex items-center gap-2 uppercase tracking-tighter ${disabled ? 'opacity-40 cursor-not-allowed bg-blue-500' : 'hover:bg-blue-700 active:scale-95'} ${className}`} {...props}>{children}</button>;
+const Card = ({ children, className }: any) => <div className={`border border-white/10 rounded-2xl p-6 bg-slate-950/95 shadow-2xl relative z-10 overflow-hidden ${className}`}>{children}</div>;
 const Badge = ({ children, color = "blue" }: any) => {
   const colors: any = {
     blue: "bg-blue-500/20 text-blue-400 border-blue-500/30",
@@ -782,7 +782,7 @@ export default function SkyTrackApex() {
             </div>
           </div>
           <Button
-            className="px-10 py-4"
+            className="relative z-50 pointer-events-auto px-10 py-4"
             onClick={() => {
               if (!session && !showNewEntryForm) {
                 setFormMessage({ type: 'error', text: t.signInToAddEntry });
@@ -902,7 +902,7 @@ export default function SkyTrackApex() {
 
         {/* VIEW: DASHBOARD (Includes Live Dispatch & Weather) */}
         {view === 'dashboard' && (
-          <div className="space-y-8 px-12 pb-12">
+          <div className="space-y-8 px-12 pb-12 relative z-20">
             {/* DISPATCH CENTER */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <Card className={`border-l-8 ${weather.isSafeForSolo ? 'border-emerald-500' : 'border-rose-500'} bg-black/80`}>
@@ -1103,11 +1103,11 @@ export default function SkyTrackApex() {
                 { l: t.crossCountry, v: 5.8, m: 5, r: t.metStatus, ok: true },
                 { l: t.dualInstruction, v: 8.6, m: 20, r: `${t.hoursRemainingPrefix} 11.4 ${t.hoursAbbreviation}` },
               ].map(g => (
-                <div key={g.l} className="bg-slate-800/95 p-5 rounded-3xl border border-white/10 text-center group hover:border-blue-400/70 transition-all">
+                <div key={g.l} className="bg-slate-950/95 p-5 rounded-3xl border border-slate-800 text-center group hover:border-blue-400/70 transition-all">
                   <p className="text-[10px] font-black text-white uppercase mb-3">{g.l}</p>
-                  <div className="text-2xl font-black text-white italic">{g.v}<span className="text-[10px] text-slate-200 ml-1">/{g.m}</span></div>
+                  <div className="text-2xl font-black text-white italic">{g.v}<span className="text-[10px] text-slate-100 ml-1">/{g.m}</span></div>
                   <div className="mt-3 h-1 w-full bg-slate-700 rounded-full"><div className={`h-full ${g.ok ? 'bg-emerald-400' : 'bg-blue-500'} rounded-full`} style={{ width: `${(g.v / g.m) * 100}%` }} /></div>
-                  <p className={`text-[9px] font-bold mt-3 uppercase ${g.ok ? 'text-emerald-300' : 'text-slate-200'}`}>{g.r}</p>
+                  <p className={`text-[9px] font-bold mt-3 uppercase ${g.ok ? 'text-emerald-300' : 'text-slate-100'}`}>{g.r}</p>
                 </div>
               ))}
             </div>
