@@ -33,11 +33,11 @@ const Progress = ({ val, max, color = "bg-blue-600" }: any) => (
   </div>
 );
 
-const airports = [
+const africanAirports = [
   { code: 'HKNW', name: 'Wilson', lang: 'en' },
+  { code: 'HKJK', name: 'JKIA', lang: 'en' },
   { code: 'GOOY', name: 'Dakar', lang: 'fr' },
   { code: 'FKKD', name: 'Douala', lang: 'fr' },
-  { code: 'HUEN', name: 'Entebbe', lang: 'en' },
   { code: 'HRYR', name: 'Kigali', lang: 'fr' },
 ];
 
@@ -257,6 +257,7 @@ const generateAssistantReply = (input: string, now: Date, weather: any, nextFlig
 // =============================================================================
 export default function SkyTrackApex() {
   const [lang, setLang] = useState<'en' | 'fr'>('en');
+  const setLanguage = (value: 'en' | 'fr') => setLang(value);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const isDark = theme === 'dark';
   const t = translations[lang];
@@ -329,7 +330,7 @@ export default function SkyTrackApex() {
   }, [lang]);
 
   const [selectedAirport, setSelectedAirport] = useState('HKNW');
-  const selectedAirportData = airports.find((airport) => airport.code === selectedAirport);
+  const selectedAirportData = africanAirports.find((airport) => airport.code === selectedAirport);
   const selectedAirportName = selectedAirportData?.name ?? selectedAirport;
   const currentDateLabel = currentTime.toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR', { month: 'long', day: 'numeric', year: 'numeric' });
   const currentTimeLabel = currentTime.toLocaleTimeString(lang === 'en' ? 'en-US' : 'fr-FR', { hour: '2-digit', minute: '2-digit' });
@@ -750,7 +751,7 @@ export default function SkyTrackApex() {
           {isDark ? <Sun size={16} /> : <Moon size={16} />} {isDark ? 'Light' : 'Dark'}
         </Button>
       </div>        {/* SIDEBAR */}
-      <aside className="w-72 bg-black/60 border-r border-white/5 flex flex-col h-screen sticky top-0 backdrop-blur-xl">
+      <aside className="hidden md:flex md:w-72 bg-black/60 border-r border-white/5 flex-col md:h-screen sticky top-0 backdrop-blur-xl">
         <div className="p-8">
           <div className="flex items-center gap-3">
             <div className="bg-blue-600 p-2.5 rounded-2xl shadow-lg shadow-blue-500/40 -rotate-2"><Plane size={24} className="text-white" /></div>
@@ -792,7 +793,7 @@ export default function SkyTrackApex() {
           <div>
             <div className="flex items-center gap-3 mb-2">
               <Badge color="green">{selectedAirportName} {t.airportOps} ({selectedAirport})</Badge>
-              <div className="text-[10px] font-black text-white uppercase tracking-widest">{currentDateLabel} • {currentTimeLabel} EAT</div>
+              <div className="text-[10px] font-bold text-white opacity-100 visible uppercase tracking-widest">{currentDateLabel} • {currentTimeLabel} EAT</div>
             </div>
             <h1 className="text-6xl font-black text-white tracking-tighter uppercase italic drop-shadow-2xl">
               {view === 'dashboard' && t.commandDeck}
@@ -801,25 +802,25 @@ export default function SkyTrackApex() {
               {view === 'compliance' && t.kcaaAuditStatus}
             </h1>
 
-            <div className="mt-3 text-white text-sm font-medium uppercase tracking-widest">
-              <div>{t.localTime}: {formatDigitalTime(currentTime)}</div>
-              <div className="mt-1 text-[10px] text-white font-medium">{t.nextFlightCountdown}: {countdown}</div>
+            <div className="mt-3 text-white text-sm uppercase tracking-widest">
+              <div className="font-bold text-white opacity-100 visible">{t.localTime}: {formatDigitalTime(currentTime)}</div>
+              <div className="mt-1 text-[10px] font-bold text-white opacity-100 visible">{t.nextFlightCountdown}: {countdown}</div>
               <div className="mt-3 flex flex-wrap gap-3 items-center">
-                <label className="text-[10px] uppercase tracking-widest text-white font-medium">{t.airportLabel}</label>
+                <label className="text-[10px] uppercase tracking-widest text-white font-bold opacity-100 visible">{t.airportLabel}</label>
                 <select
                   value={selectedAirport}
                   onChange={(event) => {
                     const selectedCode = event.target.value;
-                    const airport = airports.find((airport) => airport.code === selectedCode);
+                    const airport = africanAirports.find((airport) => airport.code === selectedCode);
                     setSelectedAirport(selectedCode);
                     if (airport) {
-                      setLang(airport.lang as 'en' | 'fr');
+                      setLanguage(airport.lang as 'en' | 'fr');
                     }
                   }}
                   className="rounded-2xl border border-white/10 bg-slate-900/80 px-3 py-2 text-sm text-white outline-none"
                 >
-                  {airports.map((airport) => (
-                    <option key={airport.code} value={airport.code}>{airport.name}</option>
+                  {africanAirports.map((airport) => (
+                    <option key={airport.code} value={airport.code}>{airport.name} ({airport.code})</option>
                   ))}
                 </select>
               </div>
