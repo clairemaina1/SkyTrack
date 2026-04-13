@@ -797,7 +797,7 @@ export default function SkyTrackApex() {
         </header>
 
         {showNewEntryForm && (
-          <Card className="mb-10 border border-blue-500/20 bg-slate-950/90">
+          <Card className="mb-10 py-6 border border-slate-700/60 bg-slate-950/90 shadow-xl">
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-xl font-black text-white uppercase tracking-tighter">{t.createNewFlightEntryTitle}</h2>
