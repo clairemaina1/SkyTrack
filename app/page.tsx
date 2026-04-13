@@ -38,12 +38,13 @@ const africanAirports = [
   { code: 'HKJK', name: 'JKIA', country: 'Kenya', lang: 'en' },
   { code: 'GOOY', name: 'Dakar Blaise Diagne', country: 'Senegal', lang: 'fr' },
   { code: 'FKKD', name: 'Douala International', country: 'Cameroon', lang: 'fr' },
-  { code: 'DIAP', name: 'Abidjan Felix Houphouët-Boigny', country: 'Ivory Coast', lang: 'fr' },
+  { code: 'DIAP', name: 'Abidjan Houphouët-Boigny', country: 'Ivory Coast', lang: 'fr' },
   { code: 'HUEN', name: 'Entebbe International', country: 'Uganda', lang: 'en' },
   { code: 'HRYR', name: 'Kigali International', country: 'Rwanda', lang: 'fr' },
   { code: 'DGAA', name: 'Kotoka Accra', country: 'Ghana', lang: 'en' },
-  { code: 'DABC', name: 'Algiers Houari Boumediene', country: 'Algeria', lang: 'fr' },
   { code: 'FACT', name: 'Cape Town International', country: 'South Africa', lang: 'en' },
+  { code: 'HAAB', name: 'Addis Ababa Bole', country: 'Ethiopia', lang: 'en' },
+  { code: 'DAAG', name: 'Algiers Houari Boumediene', country: 'Algeria', lang: 'fr' },
 ];
 
 const weatherPresets = [
@@ -798,11 +799,11 @@ export default function SkyTrackApex() {
               {view === 'compliance' && t.kcaaAuditStatus}
             </h1>
 
-            <div className="mt-3 text-slate-100 text-sm uppercase tracking-widest">
+            <div className="mt-3 text-slate-100 text-sm font-medium uppercase tracking-widest">
               <div>{t.localTime}: {formatDigitalTime(currentTime)}</div>
-              <div className="mt-1 text-[10px] text-slate-100">{t.nextFlightCountdown}: {countdown}</div>
+              <div className="mt-1 text-[10px] text-slate-100 font-medium">{t.nextFlightCountdown}: {countdown}</div>
               <div className="mt-3 flex flex-wrap gap-3 items-center">
-                <label className="text-[10px] uppercase tracking-widest text-slate-100">{t.airportLabel}</label>
+                <label className="text-[10px] uppercase tracking-widest text-slate-100 font-medium">{t.airportLabel}</label>
                 <select
                   value={selectedAirport}
                   onChange={(event) => {
