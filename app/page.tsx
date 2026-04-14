@@ -642,6 +642,65 @@ export default function SkyTrackApex() {
             <Card className="bg-slate-900/80 border border-white/10 p-6">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
                 <div>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Compliance Status</p>
+                  <h3 className="text-2xl font-black text-white uppercase tracking-tight mt-3">Completed Requirements</h3>
+                </div>
+                <Badge color="green">Optimal Launch Window</Badge>
+              </div>
+              <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
+                <div className="rounded-3xl bg-black/40 border border-white/5 p-6">
+                  <div className="flex items-center justify-between mb-5">
+                    <span className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Next launch window</span>
+                    <span className="text-[10px] uppercase tracking-[0.3em] text-emerald-400 font-black">Stable</span>
+                  </div>
+                  <p className="text-4xl font-black text-white">06:00 AM</p>
+                  <p className="mt-2 text-sm text-slate-400">09h 32m 15s remaining until ideal departure conditions.</p>
+                  <div className="mt-5 rounded-3xl bg-white/5 p-4 border border-white/10">
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-slate-400 font-black mb-2">Student readiness</p>
+                    <p className="text-sm font-black text-amber-300">Hold until conditions improve</p>
+                  </div>
+                </div>
+                <div className="rounded-3xl bg-slate-950/80 border border-white/10 p-6">
+                  <div className="flex items-center justify-between mb-5">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Training Schedule</p>
+                      <p className="text-sm text-slate-400">Next scheduled slot and live countdown</p>
+                    </div>
+                    <Badge color="blue">Next slot</Badge>
+                  </div>
+                  <div className="space-y-4 text-slate-300">
+                    <div className="rounded-3xl bg-black/40 p-4 border border-white/5">
+                      <p className="text-sm font-black text-white">06:30 · Dual Instruction</p>
+                      <p className="text-[10px] text-slate-500 mt-1">Arrives in: 10h 01m 49s</p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="rounded-3xl bg-black/40 p-4 border border-white/5">
+                        <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">Early Training</p>
+                        <p className="text-sm font-black text-white">06:30 Dual Instruction</p>
+                      </div>
+                      <div className="rounded-3xl bg-black/40 p-4 border border-white/5">
+                        <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">Cross-Country</p>
+                        <p className="text-sm font-black text-white">08:00 Navigation Prep</p>
+                      </div>
+                      <div className="rounded-3xl bg-black/40 p-4 border border-white/5">
+                        <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">Solo Pattern</p>
+                        <p className="text-sm font-black text-white">10:30 Pattern Work</p>
+                      </div>
+                      <div className="rounded-3xl bg-black/40 p-4 border border-white/5">
+                        <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">Briefing</p>
+                        <p className="text-sm font-black text-white">13:00 Weather & Nav</p>
+                      </div>
+                    </div>
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mt-3">Syllabus completion</p>
+                    <p className="text-sm text-slate-300">KCAA Official Audit Status track audit readiness across training and certification.</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="bg-slate-900/80 border border-white/10 p-6">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+                <div>
                   <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Global Equivalency Engine</p>
                   <h3 className="text-2xl font-black text-white uppercase tracking-tight mt-3">KCAA Hours vs FAA / EASA</h3>
                 </div>
@@ -1101,6 +1160,37 @@ export default function SkyTrackApex() {
                 </div>
               </Card>
             </div>
+
+            <Card className="bg-slate-900/80 border border-white/10 p-6">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Audit Summary</p>
+                  <h3 className="text-3xl font-black text-white uppercase tracking-tight mt-3">Track audit readiness across training and certification</h3>
+                </div>
+                <Badge color="purple">KCAA Official Audit Status</Badge>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  { label: 'PPL Training Syllabus (Phase 1-4)', status: 'Ongoing', verified: 'Ongoing', progress: '65% Complete' },
+                  { label: 'Night Flight Rating Requirement', status: 'Underway', verified: 'Ongoing', progress: '20% Complete' },
+                  { label: 'Cross-Country Proficiency (150nm Solo)', status: 'Verified', verified: 'Verified', progress: '100% Complete' },
+                  { label: 'Instrument Awareness Training', status: 'Ongoing', verified: 'Ongoing', progress: '56% Complete' },
+                  { label: 'Radio Operations Certificate', status: 'Licensed', verified: 'Verified', progress: '100% Complete' },
+                  { label: 'Class 2 Medical Certification', status: 'Valid until 2027', verified: 'Verified', progress: '100% Complete' },
+                ].map((item, idx) => (
+                  <div key={idx} className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-black text-white uppercase tracking-[0.18em]">{item.label}</p>
+                      <Badge color={item.progress.includes('100') ? 'green' : item.status === 'Verified' || item.status === 'Licensed' ? 'blue' : 'amber'}>{item.progress}</Badge>
+                    </div>
+                    <div className="grid gap-2 text-[10px] text-slate-400">
+                      <div className="flex justify-between"><span>Status</span><span className="font-black text-white">{item.status}</span></div>
+                      <div className="flex justify-between"><span>Verification</span><span className="font-black text-white">{item.verified}</span></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
 
             <Card className="bg-slate-900/80 border border-white/10 p-6">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
