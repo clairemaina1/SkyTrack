@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Plus, Plane, Clock, LayoutDashboard, BookOpen, ShieldCheck, Target,
-  Activity, Zap, Download, Leaf, HardDrive, XCircle, MapPin, Globe,
+  Activity, Zap, Download, Leaf, HardDrive, XCircle, MapPin, Globe, Flag,
   Fuel, Wind, CheckCircle2, Menu, Radio, Sun, Cpu, CloudLightning,
   Map, Lock, Smartphone, ShieldAlert, Database, RefreshCcw, Settings,
   Clipboard, Moon
@@ -24,6 +24,8 @@ const translations = {
     safetyLimits: "Conditions within safe solo limits.",
     totalHours: "Total Flight Hrs",
     missionStart: "Start Mission Log",
+    trainingHub: "Learning Hub",
+    trainingReadyTitle: "Mission-ready learning progress",
     innovationHub: "Command Deck Innovations",
     slotEfficiency: "Slot Efficiency",
     noiseCompliance: "Noise Compliance",
@@ -226,6 +228,23 @@ const translations = {
     equivalencyEngine: "Global Equivalency Engine",
     equivalencyTitle: "KCAA Hours vs FAA / EASA",
     studentAdvantage: "Student Advantage",
+    studentBalance: "Training Balance",
+    flightCredits: "Flight Credits",
+    studyStreak: "Study Streak",
+    nextMission: "Next Mission",
+    instructorBalance: "Mentor Balance",
+    reviewQueue: "Review Queue",
+    studentLoad: "Student Load",
+    instructorLedger: "Instructor Ledger",
+    airlineBalance: "Ops Balance",
+    fleetValue: "Fleet Value",
+    capacityScore: "Capacity Score",
+    routeHealth: "Route Health",
+    airlineSnapshot: "Airline Snapshot",
+    accountBalance: "Account Balance",
+    dueItems: "Due Items",
+    nextDeparture: "Next Departure",
+    balanceSummary: "Balance Summary",
     categoryLabel: "Category",
     kcaaLoggedHours: "KCAA logged hours",
     kcaaBaseRequirement: "KCAA base requirement",
@@ -318,6 +337,8 @@ const translations = {
     safetyLimits: "Conditions de vol solo sécurisées.",
     totalHours: "Heures Totales",
     missionStart: "Démarrer le Journal",
+    trainingHub: "Hub de formation",
+    trainingReadyTitle: "Progression prête pour la mission",
     innovationHub: "Innovations du Poste de Commande",
     slotEfficiency: "Efficacité des Créneaux",
     noiseCompliance: "Conformité Sonore",
@@ -520,6 +541,23 @@ const translations = {
     equivalencyEngine: "Moteur d'Équivalence Global",
     equivalencyTitle: "Heures KCAA vs FAA / EASA",
     studentAdvantage: "Avantage Étudiant",
+    studentBalance: "Solde formation",
+    flightCredits: "Crédits de vol",
+    studyStreak: "Série d'études",
+    nextMission: "Prochaine mission",
+    instructorBalance: "Solde mentor",
+    reviewQueue: "File de revue",
+    studentLoad: "Charge d'étudiants",
+    instructorLedger: "Registre instructeur",
+    airlineBalance: "Solde Ops",
+    fleetValue: "Valeur flotte",
+    capacityScore: "Score de capacité",
+    routeHealth: "Santé des routes",
+    airlineSnapshot: "Instantané compagnie",
+    accountBalance: "Solde du compte",
+    dueItems: "Éléments dus",
+    nextDeparture: "Prochain départ",
+    balanceSummary: "Résumé de solde",
     categoryLabel: "Catégorie",
     kcaaLoggedHours: "Heures enregistrées KCAA",
     kcaaBaseRequirement: "Exigence de base KCAA",
@@ -807,8 +845,15 @@ export default function SkyTrackApex() {
   const [isAdmin] = useState(true);
   const [assignedUserRole, setAssignedUserRole] = useState<UserRole>('student');
   const [paidAccess, setPaidAccess] = useState<Record<UserRole, boolean>>({ student: true, instructor: false, airline: false, kcaa: false });
-  const [subDashboard, setSubDashboard] = useState<Record<UserRole, string>>({ student: 'Overview', instructor: 'Roster', airline: 'Ops', kcaa: 'Ledger' });
+  const [studentCurrentSubTab, setStudentCurrentSubTab] = useState<'Logbook' | 'Ground School' | 'Equivalency'>('Logbook');
+  const [instructorCurrentSubTab, setInstructorCurrentSubTab] = useState<'Roster' | 'Grading' | 'Scheduling'>('Roster');
+  const [airlineCurrentSubTab, setAirlineCurrentSubTab] = useState<'Fleet' | 'Fuel' | 'Analytics'>('Fleet');
+  const [kcaaCurrentSubTab, setKcaaCurrentSubTab] = useState<'Registry' | 'Audit' | 'Compliance'>('Registry');
   const [accessMessage, setAccessMessage] = useState('');
+  const [chatMessages, setChatMessages] = useState<{ sender: 'user' | 'bot'; text: string }[]>([
+    { sender: 'bot', text: 'SkyTrack Assistant is online. Ask about training status, flight logs, or readiness guidance.' },
+  ]);
+  const [chatInput, setChatInput] = useState('');
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [studentRoster, setStudentRoster] = useState([
     { id: 'S1', name: 'Wamuyu Claire', email: 'wamuyu.claire@skytrack.co.ke', program: 'PPL', status: 'Active' },
@@ -967,6 +1012,33 @@ export default function SkyTrackApex() {
     { title: 'Slot recovery', detail: 'Fast lane queue for delayed arrivals and airline priority.', status: 'Yellow' },
     { title: 'Noise footprint', detail: 'Reduced noise profiles for night activity and urban corridors.', status: 'Green' },
   ]);
+  const [studentFocusItems, setStudentFocusItems] = useState<AirlineIssue[]>([
+    { title: 'Flight planning confidence', detail: 'Mission brief, weather checks, and routing are clear.', status: 'Green' },
+    { title: 'Training tempo', detail: 'Session cadence remains steady and on schedule.', status: 'Green' },
+    { title: 'Checkride preparation', detail: 'Simulator drills and assessment readiness are active.', status: 'Yellow' },
+  ]);
+  const [regulatoryAudits, setRegulatoryAudits] = useState<any[]>([
+    { id: 'RA1', flight: '5Y-KQA', status: 'Verified', date: '2026-04-01', note: 'Regulatory audit completed' },
+    { id: 'RA2', flight: '5Y-BBM', status: 'Verified', date: '2026-03-24', note: 'Historic operational check' },
+    { id: 'RA3', flight: '5Y-FLY', status: 'Verified', date: '2026-03-18', note: 'Compliance flight review' },
+  ]);
+  const [regulatoryAlerts, setRegulatoryAlerts] = useState<any[]>([
+    { id: 'AL1', flight: '5Y-KQA', status: 'Pending', issue: 'Missing flight plan attachment', date: '2026-04-14' },
+    { id: 'AL2', flight: '5Y-JKI', status: 'Flagged', issue: 'Maintenance log discrepancy', date: '2026-04-12' },
+  ]);
+  const [licenseCountdowns, setLicenseCountdowns] = useState<any[]>([
+    { type: 'Medical', expiresInDays: 285 },
+    { type: 'ELP', expiresInDays: 120 },
+    { type: 'Night Rating', expiresInDays: 97 },
+  ]);
+  const [fuelBurnHistory, setFuelBurnHistory] = useState<any[]>([
+    { date: '2026-03-17', burn: 310 },
+    { date: '2026-03-24', burn: 298 },
+    { date: '2026-03-31', burn: 325 },
+    { date: '2026-04-07', burn: 290 },
+    { date: '2026-04-14', burn: 334 },
+    { date: '2026-04-15', burn: 310 },
+  ]);
 
   useEffect(() => {
     const airport = airportBases.find((item) => item.code === selectedAirport);
@@ -1093,309 +1165,506 @@ export default function SkyTrackApex() {
     };
   }, [flights, fleet, airportFlights]);
 
-  const studentSubDashboardContent: Record<string, any> = {
-    Overview: {
-      kpis: [
-        { label: t.totalHours, val: stats.total, unit: 'HRS', icon: Clock, color: 'blue' },
-        { label: t.kpiMatrixPct, val: '88', unit: '%', icon: Target, color: 'purple' },
-        { label: t.kpiAvgBurn, val: '14.2', unit: 'GPH', icon: Fuel, color: 'amber' },
-        { label: t.kpiFleetStatus, val: '94', unit: '%', icon: Activity, color: 'emerald' },
-      ],
-      detailText: t.commandDeckDetail,
-      cards: [
-        {
-          title: t.airportOpsData,
-          items: [
-            { label: t.selectedHub, value: `${currentAirport.label} (${currentAirport.code})` },
-            { label: t.localCity, value: currentAirport.city },
-            { label: t.runwayPlan, value: currentAirport.runways },
-          ],
-        },
-        {
-          title: t.airportFlights,
-          items: [
-            { label: t.logEntriesLabel, value: stats.airportFlightCount },
-            { label: t.verifiedLabel, value: stats.airportVerified },
-            { label: t.pendingLabel, value: stats.airportPending },
-          ],
-        },
-        {
-          title: t.airportAlerts,
-          items: [
-            { label: t.runwayAvailability, value: t.openLabel },
-            { label: t.atcChannel, value: '118.3' },
-            { label: t.nextSlot, value: '+18 min' },
-          ],
-        },
-      ],
-      bannerTitle: t.innovationHub,
-      bannerSubtitle: t.futureReadyTitle,
-      bannerMetrics: [
-        { label: t.autoSlotAllocation, value: '92%', color: 'blue' },
-        { label: t.noiseCompliance, value: '86%', color: 'emerald' },
-        { label: t.auditScore, value: '100%', color: 'purple' },
-        { label: t.greenOps, value: '48% fuel savings', color: 'amber' },
-      ],
-      bannerItems: airlineIssues,
-    },
-    Training: {
-      kpis: [
-        { label: 'Simulator Hours', val: '12', unit: 'HRS', icon: Clock, color: 'blue' },
-        { label: 'Instructor Briefings', val: '5', unit: 'SESS', icon: Target, color: 'purple' },
-        { label: 'Curriculum Completion', val: '74', unit: '%', icon: Activity, color: 'emerald' },
-        { label: 'Flight Checks', val: '18', unit: 'PTS', icon: Fuel, color: 'amber' },
-      ],
-      detailText: 'Training sessions, simulator readiness, and instructor review progress.',
-      cards: [
-        {
-          title: 'Flight Syllabus',
-          items: [
-            { label: 'Modules complete', value: '8/11' },
-            { label: 'Route drills', value: '6 planned' },
-            { label: 'Debriefs pending', value: '2' },
-          ],
-        },
-        {
-          title: 'Simulator Sessions',
-          items: [
-            { label: 'Total runs', value: '14' },
-            { label: 'Night practice', value: '4' },
-            { label: 'G1000 training', value: '3' },
-          ],
-        },
-        {
-          title: 'Instructor Feedback',
-          items: [
-            { label: 'Positive reviews', value: '92%' },
-            { label: 'Coaching hours', value: '18' },
-            { label: 'Checkride prep', value: 'In progress' },
-          ],
-        },
-      ],
-      bannerTitle: 'Training Center',
-      bannerSubtitle: 'Prepared for checkrides',
-      bannerMetrics: [
-        { label: 'Simulator uptime', value: '98%', color: 'blue' },
-        { label: 'Debrief throughput', value: '85%', color: 'emerald' },
-        { label: 'Syllabus cadence', value: '4/wk', color: 'purple' },
-        { label: 'Instructor load', value: '72%', color: 'amber' },
-      ],
-      bannerItems: airlineIssues,
-    },
-    Progress: {
-      kpis: [
-        { label: 'Milestones', val: '9/12', unit: 'DONE', icon: Activity, color: 'emerald' },
-        { label: 'Logbook Entries', val: '124', unit: 'ENT', icon: Clock, color: 'blue' },
-        { label: 'Flight Time', val: '42.5', unit: 'HRS', icon: Target, color: 'purple' },
-        { label: 'Ready status', val: '76', unit: '%', icon: Fuel, color: 'amber' },
-      ],
-      detailText: 'Progress milestones, logbook status, and certification readiness metrics.',
-      cards: [
-        {
-          title: 'Milestone Completion',
-          items: [
-            { label: 'Phase 1', value: 'Complete' },
-            { label: 'Phase 2', value: 'In progress' },
-            { label: 'Phase 3', value: 'Pending' },
-          ],
-        },
-        {
-          title: 'Logbook Targets',
-          items: [
-            { label: 'Total required', value: '160 HRS' },
-            { label: 'Current logged', value: '124 HRS' },
-            { label: 'Remaining', value: '36 HRS' },
-          ],
-        },
-        {
-          title: 'Certification Readiness',
-          items: [
-            { label: 'FAA equivalent', value: 'On track' },
-            { label: 'EASA review', value: '72%' },
-            { label: 'Medical status', value: 'Valid' },
-          ],
-        },
-      ],
-      bannerTitle: 'Progress Dashboard',
-      bannerSubtitle: 'Your next milestones and readiness score',
-      bannerMetrics: [
-        { label: 'Completion ratio', value: '75%', color: 'blue' },
-        { label: 'Checkride prep', value: '82%', color: 'emerald' },
-        { label: 'Recent growth', value: '+9%', color: 'purple' },
-        { label: 'Focus areas', value: '3', color: 'amber' },
-      ],
-      bannerItems: airlineIssues,
-    },
-  };
-  const studentViewData = studentSubDashboardContent[subDashboard.student];
+  const studentFlightCredits = Math.max(0, 160 - Number(equivHours));
+  const studentStudyStreak = 5;
+  const instructorMentorBalance = 18;
+  const instructorReviewQueue = slotQueue.filter((item) => item.status !== 'Cleared').length;
+  const instructorStudentLoad = studentRoster.length;
+  const airlineOpsBalance = Math.round(fleet.reduce((sum, plane) => sum + plane.fuel * 20, 0));
+  const airlineFleetValue = fleet.length * 230000;
+  const airlineCapacityScore = Math.round((fleet.filter((plane) => plane.status === 'Operational').length / fleet.length) * 100);
+  const airlineRouteHealth = 88;
+  const airlineUpcomingFlights = airportFlights.length;
+  const airlineAccountBalance = `${Math.round(airlineOpsBalance / 1000)}K`;
 
-  const instructorSubDashboardContent: Record<string, any> = {
-    Roster: {
-      cards: [
-        { label: t.activeStudents, value: 24, icon: Clock },
-        { label: t.pendingFlights, value: stats.pending, icon: Target },
-        { label: t.averageGrade, value: '89.4%', icon: Activity },
-      ],
-      metrics: [
-        { label: t.checkrideReadiness, value: '83%' },
-        { label: t.tacticalLandings, value: '91%' },
-        { label: t.emergencyDrills, value: '78%' },
-      ],
-      extra: t.instructorNotes,
-      banner: 'Roster overview and student progress details.',
-    },
-    Schedule: {
-      cards: [
-        { label: 'Briefings', value: 6, icon: Clock },
-        { label: 'Checkrides scheduled', value: 3, icon: Target },
-        { label: 'Daily slots', value: 9, icon: Activity },
-      ],
-      metrics: [
-        { label: 'Slot efficiency', value: '87%' },
-        { label: 'Pilot readiness', value: '95%' },
-        { label: 'Operational tempo', value: '4.2x' },
-      ],
-      extra: 'Schedule view focusing on daily instructor assignments and readiness.',
-      banner: 'Active duty schedule for instructor staffing.',
-    },
-    Grades: {
-      cards: [
-        { label: t.averageGrade, value: '89.4%', icon: Activity },
-        { label: 'Proficiency checks', value: '14', icon: Clock },
-        { label: 'Pass rate', value: '91%', icon: Target },
-      ],
-      metrics: [
-        { label: 'Assessment readiness', value: '88%' },
-        { label: 'Evaluation quality', value: '93%' },
-        { label: 'Course completion', value: '76%' },
-      ],
-      extra: 'Grade review and performance metrics for current students.',
-      banner: 'Tracking student assessment and grading outcomes.',
-    },
+  const generateFakeReply = (message: string) => {
+    const normalized = message.toLowerCase();
+    if (normalized.includes('logbook')) return 'I found your last five log entries and you are on track for the next cross-country block.';
+    if (normalized.includes('weather') || normalized.includes('wx')) return 'Wind is steady from the east, bring alternate with a 15kt crosswind limit for HKJK.';
+    if (normalized.includes('exam') || normalized.includes('checkride')) return 'Focus on approach briefings and instrument procedures this week to stay within readiness targets.';
+    if (normalized.includes('fuel')) return 'Fuel burn looks healthy. Keep the last 30-day average as your planning baseline.';
+    return 'I recommend reviewing the latest training schedule, then confirm your next mission before end of day.';
   };
-  const instructorViewData = instructorSubDashboardContent[subDashboard.instructor];
 
-  const airlineSubDashboardContent: Record<string, any> = {
-    Ops: {
-      cards: [
-        { title: t.fleetHealth, items: [
-          { label: t.totalAircraft, value: fleet.length },
-          { label: t.aogFleet, value: fleet.filter((plane) => plane.status === 'AOG').length },
-          { label: t.averageFuel, value: `${Math.round(fleet.reduce((sum, plane) => sum + plane.fuel, 0) / fleet.length)}%` },
-        ]},
-        { title: t.fuelManagement, items: [
-          { label: t.calculatedFuelBurn, value: `${fleet.reduce((sum, plane) => sum + (100 - plane.fuel), 0)} L` },
-          { label: t.operationalAvailability, value: `${Math.round((fleet.filter((plane) => plane.status === 'Operational').length / fleet.length) * 100)}%` },
-          { label: 'Dispatch reliability', value: '96%' },
-        ]},
-        { title: t.carbonEmissionsCalculator, items: [
-          { label: t.co2Emissions, value: activeCarbonResult !== null ? `${activeCarbonResult} kg` : t.awaitingInput },
-          { label: 'Tree Offset', value: activeCarbonResult !== null ? `${carbonTreeOffset} trees` : '-' },
-          { label: t.fuelType, value: t[carbonFuelType] ?? carbonFuelType },
-        ]},
-      ],
-    },
-    Fuel: {
-      cards: [
-        { title: 'Fuel Logistics', items: [
-          { label: 'Current uplift', value: '5,400 L' },
-          { label: 'Supplier rating', value: 'A-' },
-          { label: 'Delivery ETA', value: '2h 10m' },
-        ]},
-        { title: 'Burn Forecast', items: [
-          { label: 'Next 24h', value: '11,200 L' },
-          { label: 'Reserve margin', value: '18%' },
-          { label: 'Efficiency trend', value: '+3.1%' },
-        ]},
-        { title: 'Fuel Compliance', items: [
-          { label: 'Quality checks', value: '100%' },
-          { label: 'Storage', value: 'Safe' },
-          { label: 'Regulator status', value: 'Verified' },
-        ]},
-      ],
-    },
-    Network: {
-      cards: [
-        { title: 'Route Utilization', items: [
-          { label: 'Active sectors', value: '18' },
-          { label: 'Load factor', value: '83%' },
-          { label: 'Delay rate', value: '11%' },
-        ]},
-        { title: 'Airport Turnaround', items: [
-          { label: 'Average time', value: '34 min' },
-          { label: 'On-time ops', value: '89%' },
-          { label: 'Gate availability', value: '72%' },
-        ]},
-        { title: 'Dispatch Reliability', items: [
-          { label: 'Clearances', value: '97%' },
-          { label: 'Rebookings', value: '3%' },
-          { label: 'Crew readiness', value: '92%' },
-        ]},
-      ],
-    },
+  const handleChatSubmit = () => {
+    if (!chatInput.trim()) return;
+    const userText = chatInput.trim();
+    setChatMessages((prev) => [...prev, { sender: 'user', text: userText }]);
+    const reply = generateFakeReply(userText);
+    setChatMessages((prev) => [...prev, { sender: 'bot', text: reply }]);
+    setChatInput('');
   };
-  const airlineViewData = airlineSubDashboardContent[subDashboard.airline];
 
-  const kcaaSubDashboardContent: Record<string, any> = {
-    Ledger: {
-      cards: [
-        { title: t.auditReadiness, items: [
-          { label: t.currentReadinessScore, value: `${auditReadiness}%` },
-          { label: t.openFindings, value: auditOpenCount },
-          { label: t.inReview, value: auditReviewCount },
-        ]},
-        { title: t.licenseVerifications, items: [
-          { label: 'Total licenses', value: licenseVerifications.length },
-          { label: t.statusVerified, value: `${licenseVerifications.filter((item) => item.status === 'Valid').length}` },
-          { label: t.expiresLabel, value: 'Next expiry 2025' },
-        ]},
-        { title: t.incidentReports, items: [
-          { label: t.openFindings, value: incidentReports.length },
-          { label: t.severityLabel, value: 'High / Medium / Low' },
-          { label: t.issuedLabel, value: 'Active ledger' },
-        ]},
-      ],
-    },
-    Audit: {
-      cards: [
-        { title: 'Audit Findings', items: [
-          { label: t.openFindings, value: auditOpenCount },
-          { label: t.inReview, value: auditReviewCount },
-          { label: 'Closed', value: auditClosedCount },
-        ]},
-        { title: 'Inspection Summary', items: [
-          { label: 'Log checks', value: 'Complete' },
-          { label: 'Crew currency', value: '2 pending' },
-          { label: 'Maintenance', value: 'Verified' },
-        ]},
-        { title: 'Report Status', items: [
-          { label: 'Certification', value: 'On track' },
-          { label: 'Audit window', value: 'Next week' },
-          { label: 'Compliance', value: 'Green' },
-        ]},
-      ],
-    },
-    Compliance: {
-      cards: [
-        { title: 'Compliance Flow', items: [
-          { label: t.licenseVerifications, value: licenseVerifications.length },
-          { label: t.openFindings, value: auditOpenCount },
-          { label: t.statusLicensed, value: 'Verified' },
-        ]},
-        { title: 'Regulator Checks', items: [
-          { label: 'Certificates', value: 'Complete' },
-          { label: 'Medical audits', value: 'Pending' },
-          { label: 'Safety training', value: 'Ongoing' },
-        ]},
-        { title: 'Watchlist', items: [
-          { label: t.incidentReports, value: incidentReports.length },
-          { label: t.statusValidUntil, value: '2027' },
-          { label: t.verificationCaption, value: 'In progress' },
-        ]},
-      ],
-    },
+  const renderStudentSubDashboardContent = () => {
+    const recentFlights = flights.slice(0, 4);
+    const groundSchoolModules = [
+      { title: 'Meteorology', progress: 82, status: 'On schedule' },
+      { title: 'Navigation', progress: 76, status: 'Review next' },
+      { title: 'Aircraft Systems', progress: 69, status: 'Action required' },
+      { title: 'Human Factors', progress: 91, status: 'Good' },
+    ];
+
+    switch (studentCurrentSubTab) {
+      case 'Ground School':
+        return (
+          <div className="space-y-6">
+            <Card className="bg-slate-900/80 border border-white/10 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Ground School Dashboard</p>
+                  <h3 className="text-3xl font-black text-white uppercase tracking-tight mt-2">Core syllabus progress</h3>
+                </div>
+                <Badge color="green">Learning</Badge>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                {groundSchoolModules.map((module) => (
+                  <div key={module.title} className="rounded-3xl bg-black/40 border border-white/5 p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-black text-white uppercase tracking-[0.2em]">{module.title}</p>
+                      <span className="text-[10px] uppercase tracking-[0.25em] text-slate-400">{module.status}</span>
+                    </div>
+                    <div className="h-3 rounded-full bg-white/5 overflow-hidden">
+                      <div className="h-full rounded-full bg-blue-500" style={{ width: `${module.progress}%` }} />
+                    </div>
+                    <p className="mt-3 text-sm text-slate-300">Progress: {module.progress}%</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <Card className="bg-slate-900/80 border border-white/10 p-6">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">Lesson Tracker</p>
+              <div className="grid gap-3">
+                {['Aero weather briefing', 'Cross-country planning', 'Systems review', 'Crew resource management'].map((lesson) => (
+                  <div key={lesson} className="rounded-3xl bg-slate-950/70 border border-slate-800 p-4">
+                    <p className="text-sm font-black text-white">{lesson}</p>
+                    <p className="text-[10px] text-slate-400 mt-2">{lesson === 'Systems review' ? 'Needs follow-up' : 'On track'}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        );
+
+      case 'Equivalency':
+        return (
+          <div className="space-y-6">
+            <Card className="bg-slate-900/80 border border-white/10 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Equivalency Engine</p>
+                  <h3 className="text-3xl font-black text-white uppercase tracking-tight mt-2">Cross-jurisdiction readiness</h3>
+                </div>
+                <Badge color="purple">{t.studentAdvantage}</Badge>
+              </div>
+              <div className="grid gap-4 md:grid-cols-[1.3fr_0.7fr]">
+                <div className="space-y-4">
+                  <div className="rounded-3xl bg-black/40 border border-white/5 p-5">
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-2">Selected category</p>
+                    <p className="text-xl font-black text-white">{equivCategory}</p>
+                  </div>
+                  <div className="rounded-3xl bg-black/40 border border-white/5 p-5">
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-2">Logged hours</p>
+                    <p className="text-4xl font-black text-white">{equivHours || 0}h</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div className="rounded-3xl bg-slate-950/80 border border-white/10 p-5">
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-3">KCAA Requirement</p>
+                    <p className="text-3xl font-black text-white">{equivalency.kcaaBase}h</p>
+                  </div>
+                  <div className="rounded-3xl bg-slate-950/80 border border-white/10 p-5">
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-3">FAA Status</p>
+                    <p className="text-2xl font-black text-white">{equivalency.faaStatus}</p>
+                  </div>
+                  <div className="rounded-3xl bg-slate-950/80 border border-white/10 p-5">
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-3">EASA Status</p>
+                    <p className="text-2xl font-black text-white">{equivalency.easaStatus}</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="bg-slate-900/80 border border-white/10 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Equivalency Progress</p>
+                <Badge color={equivalency.compatibilityLabel === 'High FAA Compatibility' ? 'green' : 'blue'}>{equivalency.compatibilityLabel}</Badge>
+              </div>
+              <div className="space-y-4">
+                {[
+                  { label: 'FAA', progress: equivalency.faaProgress },
+                  { label: 'EASA', progress: equivalency.easaProgress },
+                ].map((item) => (
+                  <div key={item.label}>
+                    <div className="flex justify-between text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-2">
+                      <span>{item.label}</span>
+                      <span>{item.progress}%</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                      <div className="h-full rounded-full bg-blue-500" style={{ width: `${item.progress}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="space-y-6">
+            <Card className="bg-slate-900/80 border border-white/10 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Pilot Logbook</p>
+                  <h3 className="text-3xl font-black text-white uppercase tracking-tight mt-2">Latest training flights</h3>
+                </div>
+                <Badge color="blue">Logbook</Badge>
+              </div>
+              <div className="grid gap-4">
+                {recentFlights.map((flight) => (
+                  <div key={flight.id} className="rounded-3xl bg-black/40 border border-white/5 p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-sm font-black text-white uppercase tracking-[0.15em]">{flight.reg}</p>
+                      <span className="text-[10px] uppercase tracking-[0.25em] text-slate-400">{flight.duration}</span>
+                    </div>
+                    <p className="text-slate-300 text-sm">{flight.date} · {flight.airport}</p>
+                    <div className="mt-3 flex items-center justify-between text-[10px] uppercase tracking-[0.25em] text-slate-500">
+                      <span>{flight.status}</span>
+                      <span>{flight.type}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card className="bg-black/40 border border-white/5 p-6">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-3">Logbook summary</p>
+                <p className="text-3xl font-black text-white">{recentFlights.length}</p>
+                <p className="text-[10px] text-slate-400 mt-2">Recent recorded sorties</p>
+              </Card>
+              <Card className="bg-black/40 border border-white/5 p-6">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-3">Next checkpoint</p>
+                <p className="text-3xl font-black text-white">Night circuits</p>
+                <p className="text-[10px] text-slate-400 mt-2">Scheduled for tomorrow</p>
+              </Card>
+              <Card className="bg-black/40 border border-white/5 p-6">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-3">Instructor endorsements</p>
+                <p className="text-3xl font-black text-white">3 pending</p>
+                <p className="text-[10px] text-slate-400 mt-2">Checkride readiness</p>
+              </Card>
+            </div>
+          </div>
+        );
+    }
   };
-  const kcaaViewData = kcaaSubDashboardContent[subDashboard.kcaa];
+
+  const renderInstructorSubDashboardContent = () => {
+    switch (instructorCurrentSubTab) {
+      case 'Roster':
+        return (
+          <div className="grid gap-4 xl:grid-cols-3">
+            <Card className="border border-slate-700 p-6 xl:col-span-2">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">Instructor Roster</p>
+              <div className="space-y-3">
+                {instructorRoster.map((instructor) => (
+                  <div key={instructor.id} className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-black text-white">{instructor.name}</p>
+                      <Badge color={instructor.status === 'Available' ? 'green' : 'amber'}>{translateStatus(instructor.status)}</Badge>
+                    </div>
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-2">{instructor.rating}</p>
+                    <p className="text-sm text-slate-300">{instructor.email}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+            <Card className="border border-slate-700 p-6">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">Student Roster</p>
+              <div className="space-y-3">
+                {studentRoster.map((student) => (
+                  <div key={student.id} className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                    <p className="text-sm font-black text-white mb-2">{student.name}</p>
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-1">{student.program}</p>
+                    <p className="text-sm text-slate-300">{student.email}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        );
+
+      case 'Grading':
+        return (
+          <div className="grid gap-4 xl:grid-cols-3">
+            {[
+              { label: 'Average grade', value: '89.4%' },
+              { label: 'Pass rate', value: '91%' },
+              { label: 'Assessment readiness', value: '88%' },
+            ].map((metric) => (
+              <Card key={metric.label} className="border border-slate-700 p-6">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">{metric.label}</p>
+                <p className="text-3xl font-black text-white">{metric.value}</p>
+              </Card>
+            ))}
+          </div>
+        );
+
+      default:
+        return (
+          <div className="grid gap-4 xl:grid-cols-3">
+            <Card className="border border-slate-700 p-6 xl:col-span-2">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">Schedule Snapshot</p>
+              <div className="space-y-3">
+                {slotQueue.slice(0, 4).map((slot) => (
+                  <div key={slot.id} className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-black text-white">{slot.flight}</p>
+                      <Badge color={slot.status === 'Cleared' ? 'green' : slot.status === 'Pending' ? 'amber' : 'red'}>{translateStatus(slot.status)}</Badge>
+                    </div>
+                    <p className="text-[10px] text-slate-400 uppercase tracking-[0.28em] mb-2">{translateText(slot.title)}</p>
+                    <p className="text-sm text-slate-300">{translateText(slot.detail)}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+            <Card className="border border-slate-700 p-6">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">Instructor Load</p>
+              <div className="space-y-3">
+                <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">Pending reviews</p>
+                  <p className="text-3xl font-black text-white">{instructorReviewQueue}</p>
+                </div>
+                <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">Active pilots</p>
+                  <p className="text-3xl font-black text-white">{instructorStudentLoad}</p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        );
+    }
+  };
+
+  const renderAirlineSubDashboardContent = () => {
+    switch (airlineCurrentSubTab) {
+      case 'Fuel':
+        return (
+          <div className="space-y-6">
+            <Card className="bg-slate-900/80 border border-white/10 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Fuel Management</p>
+                <Badge color="green">Efficiency</Badge>
+              </div>
+              <div className="grid gap-4 xl:grid-cols-3">
+                <div className="rounded-3xl bg-black/40 border border-white/5 p-5">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-3">30-day burn</p>
+                  <p className="text-3xl font-black text-white">{fuelBurnHistory.reduce((sum, item) => sum + item.burn, 0)} L</p>
+                </div>
+                <div className="rounded-3xl bg-black/40 border border-white/5 p-5">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-3">Average weekly</p>
+                  <p className="text-3xl font-black text-white">{Math.round(fuelBurnHistory.reduce((sum, item) => sum + item.burn, 0) / fuelBurnHistory.length)} L</p>
+                </div>
+                <div className="rounded-3xl bg-black/40 border border-white/5 p-5">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-3">Last flight burn</p>
+                  <p className="text-3xl font-black text-white">{fuelBurnHistory[fuelBurnHistory.length - 1].burn} L</p>
+                </div>
+              </div>
+            </Card>
+            <Card className="bg-slate-900/80 border border-white/10 p-6">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">Daily fuel history</p>
+              <div className="space-y-3">
+                {fuelBurnHistory.map((entry) => (
+                  <div key={entry.date} className="rounded-3xl bg-black/40 border border-white/5 p-4 flex items-center justify-between">
+                    <span className="text-sm text-slate-300">{entry.date}</span>
+                    <span className="text-sm font-black text-white">{entry.burn} L</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        );
+
+      case 'Analytics':
+        return (
+          <div className="space-y-6">
+            <Card className="bg-slate-900/80 border border-white/10 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Analytics</p>
+                <Badge color="blue">Network</Badge>
+              </div>
+              <div className="grid gap-4 xl:grid-cols-3">
+                <div className="rounded-3xl bg-black/40 border border-white/5 p-5">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-3">Capacity score</p>
+                  <p className="text-3xl font-black text-white">{airlineCapacityScore}%</p>
+                </div>
+                <div className="rounded-3xl bg-black/40 border border-white/5 p-5">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-3">Route health</p>
+                  <p className="text-3xl font-black text-white">{airlineRouteHealth}%</p>
+                </div>
+                <div className="rounded-3xl bg-black/40 border border-white/5 p-5">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-3">Upcoming flights</p>
+                  <p className="text-3xl font-black text-white">{airlineUpcomingFlights}</p>
+                </div>
+              </div>
+            </Card>
+            <Card className="bg-slate-900/80 border border-white/10 p-6">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">Top routes</p>
+              <div className="space-y-3 text-slate-300">
+                {fleet.slice(0, 3).map((plane) => (
+                  <div key={plane.id} className="rounded-3xl bg-black/40 border border-white/5 p-4 flex justify-between items-center">
+                    <span>{plane.reg}</span>
+                    <span className="font-black">{plane.fuel}% fuel</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="space-y-6">
+            <Card className="bg-slate-900/80 border border-white/10 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Fleet Health</p>
+                <Badge color="green">Operational</Badge>
+              </div>
+              <div className="grid gap-4 xl:grid-cols-2">
+                <div className="rounded-3xl bg-black/40 border border-white/5 p-5">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-3">Operational fleet</p>
+                  <p className="text-3xl font-black text-white">{fleet.filter((plane) => plane.status === 'Operational').length}</p>
+                </div>
+                <div className="rounded-3xl bg-black/40 border border-white/5 p-5">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-3">AOG aircraft</p>
+                  <p className="text-3xl font-black text-white">{fleet.filter((plane) => plane.status === 'AOG').length}</p>
+                </div>
+              </div>
+            </Card>
+            <Card className="bg-slate-900/80 border border-white/10 p-6">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">Aircraft overview</p>
+              <div className="grid gap-3">
+                {fleet.map((plane) => (
+                  <div key={plane.id} className="rounded-3xl bg-black/40 border border-white/5 p-4 flex justify-between items-center">
+                    <span>{plane.reg}</span>
+                    <span className="text-slate-300">{plane.status}</span>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        );
+    }
+  };
+
+  const renderKcaaSubDashboardContent = () => {
+    switch (kcaaCurrentSubTab) {
+      case 'Registry':
+        return (
+          <div className="grid gap-4 xl:grid-cols-3">
+            <Card className="border border-slate-700 p-6 xl:col-span-2">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">Verification ledger</p>
+              <div className="space-y-3">
+                {regulatoryAudits.map((item) => (
+                  <div key={item.flight} className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-black text-white">{item.flight}</p>
+                      <Badge color={item.status === 'Verified' ? 'green' : 'amber'}>{item.status}</Badge>
+                    </div>
+                    <p className="text-[10px] text-slate-400">{item.date}</p>
+                    <p className="text-sm text-slate-300 mt-3">{item.note}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+            <Card className="border border-slate-700 p-6">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">License review</p>
+              <div className="space-y-3">
+                {licenseVerifications.map((license) => (
+                  <div key={license.id} className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-black text-white">{license.name}</p>
+                      <Badge color={license.status === 'Valid' ? 'green' : license.status === 'Pending' ? 'amber' : 'red'}>{translateStatus(license.status)}</Badge>
+                    </div>
+                    <p className="text-[10px] text-slate-400">Issued {license.issued}</p>
+                    <p className="text-[10px] text-slate-400 mt-1">Expires {license.expires}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        );
+      case 'Audit':
+        return (
+          <div className="space-y-6">
+            <Card className="border border-slate-700 p-6">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">Audit queue</p>
+              <div className="space-y-3">
+                {regulatoryAlerts.map((alert) => (
+                  <div key={alert.flight} className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-black text-white">{alert.flight}</p>
+                      <Badge color={alert.status === 'Flagged' ? 'red' : 'amber'}>{alert.status}</Badge>
+                    </div>
+                    <p className="text-[10px] text-slate-400">{alert.date}</p>
+                    <p className="text-sm text-slate-300 mt-3">{alert.issue}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+            <Card className="border border-slate-700 p-6">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">Incident oversight</p>
+              <div className="space-y-3">
+                {incidentReports.map((incident) => (
+                  <div key={incident.id} className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-black text-white">{translateText(incident.topic)}</p>
+                      <Badge color={incident.status === 'Resolved' ? 'green' : 'amber'}>{translateStatus(incident.status)}</Badge>
+                    </div>
+                    <p className="text-[10px] text-slate-400">{incident.date}</p>
+                    <p className="text-[10px] text-slate-500 mt-2">Severity: {translateText(incident.severity)}</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
+        );
+      default:
+        return (
+          <div className="grid gap-4 xl:grid-cols-3">
+            <Card className="border border-slate-700 p-6 xl:col-span-2">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">Compliance dashboard</p>
+              <div className="space-y-3">
+                {licenseCountdowns.map((item) => (
+                  <div key={item.type} className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm font-black text-white">{item.type}</p>
+                      <Badge color={item.expiresInDays < 90 ? 'red' : 'green'}>{item.expiresInDays}d</Badge>
+                    </div>
+                    <p className="text-[10px] text-slate-400">Expires in {item.expiresInDays} days</p>
+                  </div>
+                ))}
+              </div>
+            </Card>
+            <Card className="border border-slate-700 p-6">
+              <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">Regulator status</p>
+              <div className="space-y-3">
+                <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                  <p className="text-sm font-black text-white">Overall readiness</p>
+                  <p className="text-3xl font-black text-white">92%</p>
+                </div>
+                <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                  <p className="text-sm font-black text-white">Pending renewals</p>
+                  <p className="text-3xl font-black text-white">{licenseCountdowns.filter((item) => item.expiresInDays < 120).length}</p>
+                </div>
+              </div>
+            </Card>
+          </div>
+        );
+    }
+  };
+
   const kcaaFlightsLogged = flights.length;
   const kcaaOperationalAircraft = fleet.filter((item) => item.status === 'Operational').length;
   const kcaaAogAircraft = fleet.filter((item) => item.status === 'AOG').length;
@@ -1616,7 +1885,7 @@ export default function SkyTrackApex() {
                 <btn.icon size={18} /> {btn.label}
               </div>
               {btn.count > 0 && (
-                <span className="w-5 h-5 rounded-full bg-rose-500 text-[9px] flex items-center justify-center animate-pulse text-white font-black">{btn.count}</span>
+                <span className="w-5 h-5 rounded-full bg-slate-700 text-[9px] flex items-center justify-center text-white font-black">{btn.count}</span>
               )}
             </button>
           ))}
@@ -1675,11 +1944,11 @@ export default function SkyTrackApex() {
                   {roleDescription}
                 </p>
                 <div className="mt-6 flex flex-wrap gap-2">
-                  {['Overview', 'Training', 'Progress'].map((tab) => (
+                  {['Logbook', 'Ground School', 'Equivalency'].map((tab) => (
                     <button
                       key={tab}
-                      onClick={() => setSubDashboard((prev) => ({ ...prev, student: tab }))}
-                      className={`rounded-full px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition ${subDashboard.student === tab ? 'bg-blue-600 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'}`}
+                      onClick={() => setStudentCurrentSubTab(tab as 'Logbook' | 'Ground School' | 'Equivalency')}
+                      className={`rounded-full px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition ${studentCurrentSubTab === tab ? 'bg-blue-600 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'}`}
                     >
                       {tab}
                     </button>
@@ -1699,160 +1968,40 @@ export default function SkyTrackApex() {
             </div>
 
             <Card className="bg-slate-900/80 border border-white/10 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Active Student Sub-Dashboard</p>
-                <Badge color="blue">{subDashboard.student}</Badge>
-              </div>
-              <p className="text-sm text-slate-300">Current student view is set to {subDashboard.student}. This panel keeps your student tasks organized by role-specific workflow.</p>
-            </Card>
-
-            {/* KPI MATRIX */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {studentViewData.kpis.map((kpi: any, i: number) => (
-                <Card key={i} className="flex flex-col items-center py-8 group hover:scale-105 active:scale-95">
-                  <div className="p-3 bg-slate-900 rounded-xl mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-500">
-                    <kpi.icon className={`text-${kpi.color}-400 group-hover:text-white`} size={22} />
-                  </div>
-                  <p className="text-[9px] font-black text-slate-500 uppercase mb-1 tracking-[0.2em]">{kpi.label}</p>
-                  <div className="flex items-baseline gap-2">
-                    <p className="text-3xl font-black text-white">{kpi.val}</p>
-                    <span className="text-[10px] font-black text-slate-600">{kpi.unit}</span>
-                  </div>
-                </Card>
-              ))}
-            </div>
-
-            <Card className="bg-slate-900/80 border border-white/10 p-6">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
+              <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">{t.complianceStatus}</p>
-                  <h3 className="text-2xl font-black text-white uppercase tracking-tight mt-3">{t.completedRequirements}</h3>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-3">{t.balanceSummary}</p>
+                  <h2 className="text-2xl font-black text-white uppercase tracking-tight">{t.studentBalance}</h2>
                 </div>
-                <Badge color="green">Optimal Launch Window</Badge>
-              </div>
-              <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
-                {studentViewData.cards.map((panel: any, panelIndex: number) => (
-                  <div key={panelIndex} className="rounded-3xl bg-black/40 border border-white/5 p-6">
-                    <div className="flex items-center justify-between mb-5">
-                      <span className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">{panel.title}</span>
-                    </div>
-                    <div className="space-y-3 text-slate-300 text-sm">
-                      {panel.items.map((item: any, itemIndex: number) => (
-                        <div key={itemIndex} className="flex justify-between">
-                          <span>{item.label}</span>
-                          <span className="font-black text-white">{item.value}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-
-            <Card className="bg-slate-900/80 border border-white/10 p-6">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">AI Student Assistant</p>
-                  <h3 className="text-2xl font-black text-white uppercase tracking-tight mt-3">2050 Assistant Console</h3>
-                </div>
-                <Badge color="blue">Student Support</Badge>
-              </div>
-              <div className="space-y-4 text-slate-300">
-                <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
-                  <p className="text-sm font-black uppercase tracking-[0.18em] text-white mb-2">Ask about flight planning, grades, or consulting.</p>
-                  <p className="text-[10px] leading-relaxed">This simulated AI assistant can offer guidance on mission readiness, training progress, or assessment checkpoints. Responses are mock advisory only.</p>
-                </div>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  {[
-                    { label: 'Flight Query', value: 'Fuel plan, WX, route' },
-                    { label: 'Grade Review', value: 'Performance feedback matrix' },
-                    { label: 'Consulting', value: 'Career path & endorsements' },
-                  ].map((item) => (
-                    <div key={item.label} className="rounded-3xl bg-slate-950/70 border border-white/5 p-4">
-                      <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-2">{item.label}</p>
-                      <p className="text-sm font-black text-white">{item.value}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Card>
-
-            <Card className="bg-slate-900/80 border border-white/10 p-6">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
-                <div>
-                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">{t.equivalencyEngine}</p>
-                  <h3 className="text-2xl font-black text-white uppercase tracking-tight mt-3">{t.equivalencyTitle}</h3>
-                </div>
-                <Badge color="purple">{t.studentAdvantage}</Badge>
-              </div>
-              <p className="text-sm text-slate-400 leading-relaxed mb-6">{t.equivalencyDescription}</p>
-              <div className="grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-[10px] uppercase tracking-[0.3em] text-slate-500 mb-2 block">{t.categoryLabel}</label>
-                      <select value={equivCategory} onChange={(e) => setEquivCategory(e.target.value as EquivalencyCategory)} className={`w-full rounded-2xl ${themeSelectClass} px-4 py-3 text-sm outline-none focus:border-blue-500 transition`}>
-                        <option value="PIC">{t.picCrossCountry}</option>
-                        <option value="Night">{t.nightFlying}</option>
-                        <option value="Instrument">{t.instrumentSolo}</option>
-                      </select>
-                    </div>
-                    <InputField theme={theme} label={t.kcaaLoggedHoursLabel} placeholder={t.kcaaLoggedHoursPlaceholder} type="number" value={equivHours} onChange={(e) => setEquivHours(e.target.value)} />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto">
+                  <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">{t.flightCredits}</p>
+                    <p className="mt-3 text-3xl font-black text-white">{studentFlightCredits}</p>
+                    <p className="text-[10px] text-slate-400 mt-2">Flight credit pool</p>
                   </div>
                   <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
-                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-2">{t.kcaaBaseRequirement}</p>
-                    <p className="text-3xl font-black text-white">{equivalency.kcaaBase}h</p>
-                    <p className="text-[10px] text-slate-500 mt-2">{t.baselineHours}</p>
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">{t.studyStreak}</p>
+                    <p className="mt-3 text-3xl font-black text-white">{studentStudyStreak}d</p>
+                    <p className="text-[10px] text-slate-400 mt-2">Days consecutive</p>
                   </div>
-                </div>
-                <div className="space-y-4">
-                  <div className="rounded-3xl bg-slate-950/80 border border-white/10 p-4">
-                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-3">{t.faaStatus}</p>
-                    <p className="text-2xl font-black text-white">{equivalency.faaStatus}</p>
+                  <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">{t.nextMission}</p>
+                    <p className="mt-3 text-3xl font-black text-white">HKJK Circuit</p>
+                    <p className="text-[10px] text-slate-400 mt-2">Ready in 18 min</p>
                   </div>
-                  <div className="rounded-3xl bg-slate-950/80 border border-white/10 p-4">
-                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-3">{t.easaStatus}</p>
-                    <p className="text-2xl font-black text-white">{equivalency.easaStatus}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">Global-Ready Progress</p>
-                    <Badge color={equivalency.compatibilityLabel === 'High FAA Compatibility' ? 'green' : 'blue'}>{equivalency.compatibilityLabel}</Badge>
-                  </div>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-2">
-                        <span>FAA</span>
-                        <span>{equivalency.faaProgress}%</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-white/5 overflow-hidden">
-                        <div className="h-full rounded-full bg-blue-500" style={{ width: `${equivalency.faaProgress}%` }} />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-2">
-                        <span>EASA</span>
-                        <span>{equivalency.easaProgress}%</span>
-                      </div>
-                      <div className="h-2 rounded-full bg-white/5 overflow-hidden">
-                        <div className="h-full rounded-full bg-purple-500" style={{ width: `${equivalency.easaProgress}%` }} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
-                  <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-3">Conversion Prep</p>
-                  <ul className="space-y-2 text-sm text-slate-300">
-                    <li>• 50nm Straight-Line XC</li>
-                    <li>• 3h Night Training</li>
-                    <li>• 10h Complex/TAA Time</li>
-                  </ul>
                 </div>
               </div>
             </Card>
+
+            <Card className="bg-slate-900/80 border border-white/10 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Active Student Sub-Dashboard</p>
+                <Badge color="blue">{studentCurrentSubTab}</Badge>
+              </div>
+              <p className="text-sm text-slate-300">Current student view is set to {studentCurrentSubTab}. This panel keeps your student tasks organized by role-specific workflow.</p>
+            </Card>
+
+            {renderStudentSubDashboardContent()}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <Card className="bg-slate-900/80 border border-blue-500/10 p-6">
@@ -1909,17 +2058,17 @@ export default function SkyTrackApex() {
               <Card className="xl:col-span-2 bg-slate-900/80 border border-white/10 p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
-                    <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">{t.innovationHub}</p>
-                    <h3 className="text-3xl font-black text-white uppercase tracking-tight mt-3">{t.futureReadyTitle}</h3>
+                    <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">{t.trainingHub}</p>
+                    <h3 className="text-3xl font-black text-white uppercase tracking-tight mt-3">{t.trainingReadyTitle}</h3>
                   </div>
                   <Leaf size={28} className="text-emerald-400" />
                 </div>
                 <div className="grid grid-cols-2 gap-4 mb-6">
                   {[
-                    { label: t.autoSlotAllocation, value: '92%', color: 'blue' },
-                    { label: t.noiseCompliance, value: '86%', color: 'emerald' },
-                    { label: t.auditScore, value: '100%', color: 'purple' },
-                    { label: t.greenOps, value: '48% fuel savings', color: 'amber' },
+                    { label: 'Simulator readiness', value: '98%', color: 'blue' },
+                    { label: 'Debrief throughput', value: '85%', color: 'emerald' },
+                    { label: 'Syllabus cadence', value: '4/wk', color: 'purple' },
+                    { label: 'Instructor support', value: '72%', color: 'amber' },
                   ].map((item, i) => (
                     <div key={i} className="rounded-3xl bg-white/5 p-5 border border-white/5">
                       <p className="text-[9px] uppercase tracking-[0.3em] text-slate-500 font-black mb-3">{item.label}</p>
@@ -1928,7 +2077,7 @@ export default function SkyTrackApex() {
                   ))}
                 </div>
                 <div className="space-y-4">
-                  {airlineIssues.map((issue, index) => (
+                  {studentFocusItems.map((issue, index) => (
                     <div key={index} className="rounded-3xl bg-black/40 border border-white/5 p-5">
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-sm font-black text-white uppercase tracking-[0.2em]">{translateText(issue.title)}</p>
@@ -1984,11 +2133,11 @@ export default function SkyTrackApex() {
                 <h1 className={`text-5xl font-black ${themeText} uppercase italic tracking-tighter`}>{t.instructorMode}</h1>
                 <p className={`mt-3 text-sm ${themeSubText} uppercase tracking-[0.3em] max-w-2xl`}>{t.instructorDescription}</p>
                 <div className="mt-6 flex flex-wrap gap-2">
-                  {['Roster', 'Schedule', 'Grades'].map((tab) => (
+                  {['Roster', 'Grading', 'Scheduling'].map((tab) => (
                     <button
                       key={tab}
-                      onClick={() => setSubDashboard((prev) => ({ ...prev, instructor: tab }))}
-                      className={`rounded-full px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition ${subDashboard.instructor === tab ? 'bg-blue-600 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'}`}
+                      onClick={() => setInstructorCurrentSubTab(tab as 'Roster' | 'Grading' | 'Scheduling')}
+                      className={`rounded-full px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition ${instructorCurrentSubTab === tab ? 'bg-blue-600 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'}`}
                     >
                       {tab}
                     </button>
@@ -1999,53 +2148,40 @@ export default function SkyTrackApex() {
             </div>
 
             <Card className="bg-slate-900/80 border border-white/10 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Active Instructor Sub-Dashboard</p>
-                <Badge color="blue">{subDashboard.instructor}</Badge>
+              <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-3">{t.instructorLedger}</p>
+                  <h2 className="text-2xl font-black text-white uppercase tracking-tight">{t.instructorBalance}</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto">
+                  <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">{t.reviewQueue}</p>
+                    <p className="mt-3 text-3xl font-black text-white">{instructorReviewQueue}</p>
+                    <p className="text-[10px] text-slate-400 mt-2">Review tasks pending</p>
+                  </div>
+                  <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">{t.studentLoad}</p>
+                    <p className="mt-3 text-3xl font-black text-white">{instructorStudentLoad}</p>
+                    <p className="text-[10px] text-slate-400 mt-2">Active students</p>
+                  </div>
+                  <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">{t.instructorBalance}</p>
+                    <p className="mt-3 text-3xl font-black text-white">{instructorMentorBalance}h</p>
+                    <p className="text-[10px] text-slate-400 mt-2">Mentor hours bank</p>
+                  </div>
+                </div>
               </div>
-              <p className="text-sm text-slate-300">Instructor mode is currently focused on {subDashboard.instructor}. Keep your mentoring tasks grouped by sub-dashboard.</p>
             </Card>
 
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-              <Card className="border border-slate-700 p-6">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">{t.studentOversight}</p>
-                <div className="grid grid-cols-2 gap-4 text-slate-300">
-                  {instructorViewData.cards.map((card: any, cardIndex: number) => (
-                    <div key={cardIndex} className={`rounded-3xl bg-slate-950/70 p-4 border border-slate-800 ${cardIndex === 2 ? 'col-span-2' : ''}`}>
-                      <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">{card.label}</p>
-                      <p className="text-3xl font-black text-white">{card.value}</p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-              <Card className="border border-slate-700 p-6">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">{t.flightScheduling}</p>
-                <div className="space-y-4">
-                  {slotQueue.map((slot) => (
-                    <div key={slot.id} className="rounded-3xl bg-black/40 border border-white/5 p-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <p className="text-sm font-black text-white">{slot.flight}</p>
-                        <Badge color={slot.status === 'Cleared' ? 'green' : slot.status === 'Pending' ? 'amber' : 'red'}>{translateStatus(slot.status)}</Badge>
-                      </div>
-                      <p className="text-[10px] text-slate-400 uppercase tracking-[0.28em] mb-2">{translateText(slot.title)} · {slot.operator} · {slot.target}</p>
-                      <p className="text-sm text-slate-400 mb-2">{translateText(slot.detail)}</p>
-                      <div className="flex items-center justify-between text-sm text-slate-300"><span>{t.delayLabel}</span><span>{slot.delay}</span></div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-              <Card className="border border-slate-700 p-6">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">{t.gradingMetrics}</p>
-                <div className="space-y-4">
-                  {instructorViewData.metrics.map((metric: any) => (
-                    <div key={metric.label} className="rounded-3xl bg-slate-950/70 p-4 border border-slate-800">
-                      <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500 mb-2">{metric.label}</p>
-                      <p className="text-2xl font-black text-white">{metric.value}</p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
+            <Card className="bg-slate-900/80 border border-white/10 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Active Instructor Sub-Dashboard</p>
+                <Badge color="blue">{instructorCurrentSubTab}</Badge>
+              </div>
+              <p className="text-sm text-slate-300">Instructor mode is currently focused on {instructorCurrentSubTab}. Keep your mentoring tasks grouped by sub-dashboard.</p>
+            </Card>
+
+            {renderInstructorSubDashboardContent()}
 
             <Card className="border border-slate-700 p-6">
               <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">{t.instructorNotes}</p>
@@ -2071,11 +2207,11 @@ export default function SkyTrackApex() {
                 <h1 className={`text-5xl font-black ${themeText} uppercase italic tracking-tighter`}>{t.airlineMode}</h1>
                 <p className={`mt-3 text-sm ${themeSubText} uppercase tracking-[0.3em] max-w-2xl`}>{t.airlineDescription}</p>
                 <div className="mt-6 flex flex-wrap gap-2">
-                  {['Ops', 'Fuel', 'Network'].map((tab) => (
+                  {['Fleet', 'Fuel', 'Analytics'].map((tab) => (
                     <button
                       key={tab}
-                      onClick={() => setSubDashboard((prev) => ({ ...prev, airline: tab }))}
-                      className={`rounded-full px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition ${subDashboard.airline === tab ? 'bg-blue-600 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'}`}
+                      onClick={() => setAirlineCurrentSubTab(tab as 'Fleet' | 'Fuel' | 'Analytics')}
+                      className={`rounded-full px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition ${airlineCurrentSubTab === tab ? 'bg-blue-600 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'}`}
                     >
                       {tab}
                     </button>
@@ -2086,77 +2222,44 @@ export default function SkyTrackApex() {
             </div>
 
             <Card className="bg-slate-900/80 border border-white/10 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Active Airline Sub-Dashboard</p>
-                <Badge color="blue">{subDashboard.airline}</Badge>
+              <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4">
+                <div>
+                  <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-3">{t.airlineSnapshot}</p>
+                  <h2 className="text-2xl font-black text-white uppercase tracking-tight">{t.airlineBalance}</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full lg:w-auto">
+                  <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">{t.accountBalance}</p>
+                    <p className="mt-3 text-3xl font-black text-white">{airlineAccountBalance}</p>
+                    <p className="text-[10px] text-slate-400 mt-2">Ops buffer value</p>
+                  </div>
+                  <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">{t.fleetValue}</p>
+                    <p className="mt-3 text-3xl font-black text-white">${airlineFleetValue.toLocaleString()}</p>
+                    <p className="text-[10px] text-slate-400 mt-2">Estimated fleet value</p>
+                  </div>
+                  <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">{t.capacityScore}</p>
+                    <p className="mt-3 text-3xl font-black text-white">{airlineCapacityScore}%</p>
+                    <p className="text-[10px] text-slate-400 mt-2">Capacity utilization</p>
+                  </div>
+                </div>
               </div>
-              <p className="text-sm text-slate-300">Airline mode is set to {subDashboard.airline}. This helps keep operations, fuel, and network tasks separated cleanly.</p>
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">{t.routeHealth}</p>
+                  <p className="mt-3 text-3xl font-black text-white">{airlineRouteHealth}%</p>
+                  <p className="text-[10px] text-slate-400 mt-2">Network health index</p>
+                </div>
+                <div className="rounded-3xl bg-black/40 border border-white/5 p-4">
+                  <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">{t.nextDeparture}</p>
+                  <p className="mt-3 text-3xl font-black text-white">{airlineUpcomingFlights}</p>
+                  <p className="text-[10px] text-slate-400 mt-2">Upcoming flight records</p>
+                </div>
+              </div>
             </Card>
 
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-              <Card className="border border-slate-700 p-6">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">{airlineViewData.cards[0].title}</p>
-                <div className="grid grid-cols-2 gap-4 text-slate-300">
-                  {airlineViewData.cards[0].items.map((item: any, idx: number) => (
-                    <div key={idx} className="rounded-3xl bg-slate-950/70 p-4 border border-slate-800">
-                      <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">{item.label}</p>
-                      <p className="text-3xl font-black text-white">{item.value}</p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-              <Card className="border border-slate-700 p-6">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">{airlineViewData.cards[1].title}</p>
-                <div className="space-y-4">
-                  {airlineViewData.cards[1].items.map((item: any, idx: number) => (
-                    <div key={idx} className="rounded-3xl bg-slate-950/70 p-4 border border-slate-800">
-                      <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">{item.label}</p>
-                      <p className="text-3xl font-black text-white">{item.value}</p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-              <Card className="border border-slate-700 p-6">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">{t.carbonEmissionsCalculator}</p>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-[10px] uppercase tracking-[0.3em] text-slate-500 mb-2 block">{t.fuelType}</label>
-                    <select value={carbonFuelType} onChange={(e) => setCarbonFuelType(e.target.value as 'jet-a1' | 'avgas')} className={`w-full rounded-2xl ${themeSelectClass} px-4 py-3 text-sm outline-none focus:border-blue-500 transition`}>
-                      <option value="jet-a1">{t.jetA1}</option>
-                      <option value="avgas">{t.avgas}</option>
-                    </select>
-                  </div>
-                  <div>
-                    <InputField
-                      theme={theme}
-                      label={t.litersConsumed}
-                      placeholder="0"
-                      type="number"
-                      value={fuelInput}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        setFuelInput(e.target.value);
-                        setCarbonLiters(e.target.value);
-                        setCarbonResult(null);
-                      }}
-                    />
-                  </div>
-                  <button onClick={() => handleCarbonCalc(fuelInput)} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-3 rounded-xl uppercase text-[10px] transition active:scale-95">
-                    Calculate CO2 & Sync Ledger
-                  </button>
-                  <button onClick={() => syncToSupabase('regulatory_audits', { status: 'Verified', timestamp: new Date().toISOString() })} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-xl uppercase text-[10px] transition active:scale-95">
-                    Sync Regulatory Ledger
-                  </button>
-                  <div className="rounded-3xl bg-slate-950/70 p-4 border border-slate-800">
-                    <p className="text-[10px] uppercase tracking-[0.25em] text-slate-500">{t.co2Emissions}</p>
-                    <p className="text-3xl font-black text-white">{activeCarbonResult !== null ? `${activeCarbonResult} kg CO2` : t.awaitingInput}</p>
-                    {activeCarbonResult !== null && (
-                      <p className="text-sm text-slate-400 mt-2">Tree Offset: {carbonTreeOffset} tree{carbonTreeOffset === 1 ? '' : 's'} required</p>
-                    )}
-                    <p className="text-[10px] text-slate-500 mt-2">{t.jetADensityInfo}</p>
-                  </div>
-                </div>
-              </Card>
-            </div>
+            {renderAirlineSubDashboardContent()}
 
             {canViewRoster && (
               <Card className="border border-slate-700 p-6">
@@ -2234,11 +2337,11 @@ export default function SkyTrackApex() {
                 <h1 className={`text-5xl font-black ${themeText} uppercase italic tracking-tighter`}>{t.kcaaRegulatorMode}</h1>
                 <p className={`mt-3 text-sm ${themeSubText} uppercase tracking-[0.3em] max-w-2xl`}>{t.kcaaRegulatorDescription}</p>
                 <div className="mt-6 flex flex-wrap gap-2">
-                  {['Ledger', 'Audit', 'Compliance'].map((tab) => (
+                  {['Registry', 'Audit', 'Compliance'].map((tab) => (
                     <button
                       key={tab}
-                      onClick={() => setSubDashboard((prev) => ({ ...prev, kcaa: tab }))}
-                      className={`rounded-full px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition ${subDashboard.kcaa === tab ? 'bg-blue-600 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'}`}
+                      onClick={() => setKcaaCurrentSubTab(tab as 'Registry' | 'Audit' | 'Compliance')}
+                      className={`rounded-full px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition ${kcaaCurrentSubTab === tab ? 'bg-blue-600 text-white' : 'bg-white/5 text-slate-300 hover:bg-white/10'}`}
                     >
                       {tab}
                     </button>
@@ -2251,9 +2354,9 @@ export default function SkyTrackApex() {
             <Card className="bg-slate-900/80 border border-white/10 p-6">
               <div className="flex items-center justify-between mb-4">
                 <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">Active KCAA Sub-Dashboard</p>
-                <Badge color="blue">{subDashboard.kcaa}</Badge>
+                <Badge color="blue">{kcaaCurrentSubTab}</Badge>
               </div>
-              <p className="text-sm text-slate-300">KCAA regulator view now tracks {subDashboard.kcaa} activities across ledger, audits, and compliance.</p>
+              <p className="text-sm text-slate-300">KCAA regulator view now tracks {kcaaCurrentSubTab} activities across ledger, audits, and compliance.</p>
             </Card>
 
             <Card className="bg-slate-900/80 border-blue-500/20 p-6">
@@ -2317,57 +2420,7 @@ export default function SkyTrackApex() {
               </div>
             </Card>
 
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-              <Card className="border border-slate-700 p-6">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">{kcaaViewData.cards[0].title}</p>
-                <div className="space-y-4 text-slate-300">
-                  {kcaaViewData.cards[0].items.map((item: any, idx: number) => (
-                    <div key={idx} className="rounded-3xl bg-black/40 p-5 border border-white/5">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-[10px] uppercase tracking-[0.25em] text-slate-500">{item.label}</span>
-                        <span className="font-black text-white">{item.value}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-
-              <Card className="border border-slate-700 p-6">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">{t.licenseVerifications}</p>
-                <div className="space-y-3">
-                  {licenseVerifications.map((license) => (
-                    <div key={license.id} className="rounded-3xl bg-black/40 p-4 border border-white/5">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <p className="text-sm font-black text-white uppercase tracking-[0.2em]">{license.name}</p>
-                          <p className="text-[10px] text-slate-500">{t.issuedLabel} {license.issued}</p>
-                        </div>
-                        <Badge color={license.status === 'Valid' ? 'green' : license.status === 'Pending' ? 'amber' : 'red'}>{translateStatus(license.status)}</Badge>
-                      </div>
-                      <p className="text-[10px] text-slate-500">{t.expiresLabel} {license.expires}</p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-
-              <Card className="border border-slate-700 p-6">
-                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black mb-4">{t.incidentReports}</p>
-                <div className="space-y-3">
-                  {incidentReports.map((incident) => (
-                    <div key={incident.id} className="rounded-3xl bg-black/40 p-4 border border-white/5">
-                      <div className="flex items-center justify-between mb-3">
-                        <div>
-                          <p className="text-sm font-black text-white uppercase tracking-[0.2em]">{translateText(incident.topic)}</p>
-                          <p className="text-[10px] text-slate-500">{incident.date}</p>
-                        </div>
-                        <Badge color={incident.status === 'Resolved' ? 'green' : 'amber'}>{translateStatus(incident.status)}</Badge>
-                      </div>
-                      <p className="text-[10px] text-slate-500">{t.severityLabel} {translateText(incident.severity)}</p>
-                    </div>
-                  ))}
-                </div>
-              </Card>
-            </div>
+            {renderKcaaSubDashboardContent()}
 
             <Card className="bg-slate-900/80 border border-white/10 p-6">
               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4 mb-6">
