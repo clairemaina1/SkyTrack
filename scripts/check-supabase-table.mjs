@@ -1,8 +1,8 @@
-const fs = require('fs');
-const path = require('path');
-const { createClient } = require('@supabase/supabase-js');
+import fs from 'fs';
+import path from 'path';
+import { createClient } from '@supabase/supabase-js';
 
-const envPath = path.resolve(__dirname, '../.env.local');
+const envPath = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../.env.local');
 if (!fs.existsSync(envPath)) {
   console.error('Missing .env.local file. Create one with SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');
   process.exitCode = 1;

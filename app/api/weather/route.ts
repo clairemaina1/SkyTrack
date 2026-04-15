@@ -10,6 +10,7 @@ const STATION_MAP: Record<string, string> = {
 };
 
 const parseMetar = (text: string, station: string) => {
+  const stationName = STATION_MAP[station] ?? station;
   const lines = text.trim().split("\n");
   const raw = lines[1] ?? lines[0] ?? "";
   const metar = raw.trim();
@@ -51,6 +52,7 @@ const parseMetar = (text: string, station: string) => {
 
   return {
     station,
+    stationName,
     metar,
     condition,
     temp: temp ?? 0,
@@ -65,6 +67,7 @@ export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     const station = url.searchParams.get('station')?.toUpperCase() || STATION_DEFAULT;
+    const stationName = STATION_MAP[station] ?? station;
     const metarUrl = `https://tgftp.nws.noaa.gov/data/observations/metar/stations/${station}.TXT`;
     const response = await fetch(metarUrl, { next: { revalidate: 30 } });
     if (!response.ok) {
@@ -72,9 +75,10 @@ export async function GET(request: Request) {
     }
 
     const text = await response.text();
-    const data = parseMetar(text, station);
+    const data = parseMetar(text, stationName);
     return NextResponse.json({ data });
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error('Weather fetch failed', error);
     return NextResponse.json({ error: "Weather fetch failed." }, { status: 500 });
   }
 }

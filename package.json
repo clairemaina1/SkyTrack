@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "supabase:init": "node scripts/check-supabase-table.js"
+    "supabase:init": "node scripts/check-supabase-table.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.103.0",
